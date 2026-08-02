@@ -17,6 +17,13 @@ export interface ColumnMeta {
   data_type: string;
   python_type: string | null;
   is_nullable: boolean;
+  technical_type: string | null;
+  business_type: string | null;
+  business_role: string | null;
+  unit: string | null;
+  aggregation: string[] | null;
+  is_derived: boolean;
+  is_redundant: boolean;
   stats: ColumnStats | null;
 }
 
@@ -35,8 +42,12 @@ export function SchemaTable({ columns }: SchemaTableProps) {
           <TableRow>
             <TableCell>Column Name</TableCell>
             <TableCell>Business Type</TableCell>
+            <TableCell>Business Role</TableCell>
+            <TableCell>Unit</TableCell>
+            <TableCell>Aggregations</TableCell>
             <TableCell>Python Type</TableCell>
             <TableCell>Nullable</TableCell>
+            <TableCell>Derived</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -50,8 +61,12 @@ export function SchemaTable({ columns }: SchemaTableProps) {
                   color={column.data_type === 'numeric' ? 'primary' : 'secondary'}
                 />
               </TableCell>
+              <TableCell>{column.business_role ?? 'Unknown'}</TableCell>
+              <TableCell>{column.unit ?? '—'}</TableCell>
+              <TableCell>{column.aggregation?.join(', ') ?? '—'}</TableCell>
               <TableCell>{column.python_type ?? 'Unknown'}</TableCell>
               <TableCell>{column.is_nullable ? 'Yes' : 'No'}</TableCell>
+              <TableCell>{column.is_derived ? 'Yes' : 'No'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

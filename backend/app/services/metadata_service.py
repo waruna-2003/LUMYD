@@ -7,6 +7,9 @@ from app.database.session import SessionLocal
 from app.models.column import ColumnMetadata
 from app.models.dataset import Dataset
 from app.services.profiling_service import ProfilingService
+from app.services.semantic_service import SemanticService
+from app.services.relationship_engine import RelationshipEngine
+from app.services.combination_service import CombinationService
 
 
 class MetadataService:
@@ -45,34 +48,44 @@ class MetadataService:
             ColumnMetadata.dataset_id == dataset.id
         ).delete(synchronize_session=False)
 
+        derived_columns = SemanticService.detect_derived_redundancy(data)
+
         for column_name in data.columns:
             series = data[column_name]
+            semantic = SemanticService.infer_semantic_metadata(str(column_name), series)
+            semantic["is_derived"] = str(column_name) in derived_columns
+            semantic["is_redundant"] = str(column_name) in derived_columns
             db.add(
                 ColumnMetadata(
                     dataset_id=dataset.id,
                     name=str(column_name),
-                    data_type=MetadataService._infer_business_type(series),
+                    data_type=str(semantic["business_type"]).lower(),
                     python_type=str(series.dtype),
                     is_nullable=bool(series.isnull().any()),
+                    **semantic,
                 )
             )
 
         db.commit()
         ProfilingService.profile_columns(db, dataset_id, dataset.storage_path)
+
+        columns = (
+            db.query(ColumnMetadata)
+            .filter(ColumnMetadata.dataset_id == dataset_id)
+            .all()
+        )
+        dimensions = [
+            column.name
+            for column in columns
+            if column.business_role in {"DIMENSION", "ENTITY"}
+            and not column.is_redundant
+        ]
+        measures = [
+            column.name for column in columns if column.business_role == "MEASURE"
+        ]
+
+        RelationshipEngine.compute_all_evidence(db, dataset_id, data)
+        CombinationService.build_store(db, dataset_id, data, dimensions, measures)
+
         dataset.status = "processed"
         db.commit()
-
-    @staticmethod
-    def _infer_business_type(series: pd.Series) -> str:
-        column_name = str(series.name).lower()
-        if pd.api.types.is_datetime64_any_dtype(series) or "date" in column_name:
-            return "datetime"
-        if pd.api.types.is_numeric_dtype(series):
-            return "numeric"
-
-        non_null = series.dropna()
-        unique_count = non_null.nunique()
-        unique_ratio = unique_count / len(non_null) if len(non_null) else 1
-        if unique_ratio < 0.15 or unique_count < 30:
-            return "categorical"
-        return "text"

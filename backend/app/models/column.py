@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database.session import Base
@@ -15,6 +15,14 @@ class ColumnMetadata(Base):
     data_type = Column(String, nullable=False)
     python_type = Column(String)
     is_nullable = Column(Boolean, default=True)
+
+    technical_type = Column(String)
+    business_type = Column(String)
+    business_role = Column(String)
+    unit = Column(String, nullable=True)
+    aggregation = Column(JSON, nullable=True)
+    is_derived = Column(Boolean, default=False, nullable=False)
+    is_redundant = Column(Boolean, default=False, nullable=False)
 
     dataset = relationship("Dataset", back_populates="column_metadata")
     stats = relationship(

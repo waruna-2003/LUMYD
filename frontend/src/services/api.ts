@@ -12,6 +12,8 @@ export const datasetService = {
   },
   fetchDatasets: () => api.get('/datasets'),
   fetchSchema: (datasetId: string) => api.get(`/datasets/${datasetId}/schema`),
+  askAnalyst: (datasetId: string, queryText: string) =>
+    api.post(`/analyst/${datasetId}/query`, { query_text: queryText }),
 };
 
 export default api;

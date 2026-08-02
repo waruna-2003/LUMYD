@@ -3,6 +3,7 @@ import { Button, Container, Typography, Grid, Card, CardContent } from '@mui/mat
 import { FileUpload } from './components/datasets/FileUpload';
 import { SchemaTable, type ColumnMeta } from './components/datasets/SchemaTable';
 import { datasetService } from './services/api';
+import { AnalystPanel } from './components/analyst/AnalystPanel';
 
 interface Dataset {
   id: string;
@@ -50,6 +51,7 @@ function App() {
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>LUMYD v1.0</Typography>
       <FileUpload onUploadSuccess={loadDatasets} />
+      <AnalystPanel datasets={datasets} />
 
       <Typography variant="h5" gutterBottom>Your Datasets</Typography>
       <Grid container spacing={2}>
