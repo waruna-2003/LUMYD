@@ -1,0 +1,49 @@
+# ==========================
+# Python
+# ==========================
+backend/venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment Variables
+backend/.env
+.env
+
+# ==========================
+# Node.js
+# ==========================
+frontend/node_modules/
+frontend/dist/
+
+# ==========================
+# VS Code
+# ==========================
+.vscode/
+
+# ==========================
+# JetBrains
+# ==========================
+.idea/
+
+# ==========================
+# macOS
+# ==========================
+.DS_Store
+
+# ==========================
+# Windows
+# ==========================
+Thumbs.db
+
+# ==========================
+# Logs
+# ==========================
+*.log
+
+# ==========================
+# Docker
+# ==========================
+docker-data/
