@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import datasets
 from app.database.session import Base, engine
-from app.models import dataset  # noqa: F401 - registers the SQLAlchemy model
+from app.models import column, column_stats, dataset  # noqa: F401 - registers models
 
 Base.metadata.create_all(bind=engine)
 

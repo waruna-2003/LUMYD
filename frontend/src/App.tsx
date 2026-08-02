@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Container, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Button, Container, Typography, Grid, Card, CardContent } from '@mui/material';
 import { FileUpload } from './components/datasets/FileUpload';
+import { SchemaTable, type ColumnMeta } from './components/datasets/SchemaTable';
 import { datasetService } from './services/api';
 
 interface Dataset {
@@ -12,10 +13,19 @@ interface Dataset {
 
 function App() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [schema, setSchema] = useState<ColumnMeta[] | null>(null);
+  const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
 
   const loadDatasets = async () => {
     const res = await datasetService.fetchDatasets();
     setDatasets(res.data);
+  };
+
+  const loadSchema = async (datasetId: string) => {
+    const response = await datasetService.fetchSchema(datasetId);
+    setSelectedDataset(datasetId);
+    setSchema(response.data);
+    await loadDatasets();
   };
 
   useEffect(() => {
@@ -23,6 +33,18 @@ function App() {
       setDatasets(response.data);
     });
   }, []);
+
+  useEffect(() => {
+    if (!datasets.some((dataset) => dataset.status === 'processing')) return;
+
+    const intervalId = window.setInterval(() => {
+      datasetService.fetchDatasets().then((response) => {
+        setDatasets(response.data);
+      });
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [datasets]);
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -38,11 +60,20 @@ function App() {
                 <Typography variant="h6" noWrap>{ds.filename}</Typography>
                 <Typography color="textSecondary">Columns: {ds.column_count}</Typography>
                 <Typography variant="caption">Status: {ds.status}</Typography>
+                <Button
+                  size="small"
+                  sx={{ display: 'block', mt: 1 }}
+                  disabled={ds.status === 'processing'}
+                  onClick={() => loadSchema(ds.id)}
+                >
+                  View Schema
+                </Button>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
+      {selectedDataset && schema && <SchemaTable columns={schema} />}
     </Container>
   );
 }

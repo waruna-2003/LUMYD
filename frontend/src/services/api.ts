@@ -11,6 +11,7 @@ export const datasetService = {
     return api.post('/datasets/upload', formData);
   },
   fetchDatasets: () => api.get('/datasets'),
+  fetchSchema: (datasetId: string) => api.get(`/datasets/${datasetId}/schema`),
 };
 
 export default api;

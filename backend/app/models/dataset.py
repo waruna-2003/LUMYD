@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import BigInteger, Column, DateTime, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.session import Base
@@ -18,3 +19,9 @@ class Dataset(Base):
     column_count = Column("columns", Integer, nullable=False, default=0)
     status = Column(String, default="uploaded")
     created_at = Column("uploaded_at", DateTime(timezone=True), server_default=func.now())
+    column_metadata = relationship(
+        "ColumnMetadata",
+        back_populates="dataset",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
