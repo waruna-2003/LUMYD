@@ -1,0 +1,698 @@
+[
+  {
+    "query": "What key drivers contributed to the decline in conversion rate across regions during Q3?",
+    "language": "en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "conversion_rate",
+      "dimensions": [
+        "region"
+      ],
+      "filters": {},
+      "time_period": "Q3",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "Investigate the primary factors behind the sudden spike in operational cost for last month.",
+    "language": "en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "cost",
+      "dimensions": [],
+      "filters": {},
+      "time_period": "last month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "Can you analyze why net profit dropped significantly in the electronics product category this quarter?",
+    "language": "en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "profit",
+      "dimensions": [
+        "product_category"
+      ],
+      "filters": {},
+      "time_period": "this quarter",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "Identify the root cause of increased churn rate by sales rep for the current year.",
+    "language": "en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "churn_rate",
+      "dimensions": [
+        "sales_rep"
+      ],
+      "filters": {},
+      "time_period": "current year",
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "why did revenue tank so hard in online channel last week?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "revenue",
+      "dimensions": [
+        "channel"
+      ],
+      "filters": {},
+      "time_period": "last week",
+      "granularity": "week"
+    }
+  },
+  {
+    "query": "any idea why our sales dropped so much for kandy branch yesterday??",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "sales",
+      "dimensions": [
+        "branch"
+      ],
+      "filters": {},
+      "time_period": "yesterday",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "last month branch eke sales adu une ai mcn",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "sales",
+      "dimensions": [
+        "branch"
+      ],
+      "filters": {},
+      "time_period": "last month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "q2 eke cost eka ochchara wadi wenna pradhana hethuwa mokakda",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "cost",
+      "dimensions": [],
+      "filters": {},
+      "time_period": "Q2",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "me month eke product category eke profit drop una reason eka hoyala denna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "profit",
+      "dimensions": [
+        "product_category"
+      ],
+      "filters": {},
+      "time_period": "this month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "ai me week eke churn rate eka wadi une sales rep lagawin",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "root_cause",
+      "target_metric": "churn_rate",
+      "dimensions": [
+        "sales_rep"
+      ],
+      "filters": {},
+      "time_period": "this week",
+      "granularity": "week"
+    }
+  },
+  {
+    "query": "Identify the top 5 sales representatives based on total revenue generated during the last quarter.",
+    "language": "en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "revenue",
+      "dimensions": [
+        "sales_rep"
+      ],
+      "filters": {},
+      "time_period": "last quarter",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "Which customer segments generated the lowest profit this year?",
+    "language": "en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "profit",
+      "dimensions": [
+        "customer_segment"
+      ],
+      "filters": {},
+      "time_period": "this year",
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "Rank all operating regions by total order count for the current month.",
+    "language": "en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "order_count",
+      "dimensions": [
+        "region"
+      ],
+      "filters": {},
+      "time_period": "current month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "who are the worst performing sales reps by sales volume lately?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "sales_volume",
+      "dimensions": [
+        "sales_rep"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "show me top 3 products with highest discount given this week",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "discount",
+      "dimensions": [
+        "product_name"
+      ],
+      "filters": {},
+      "time_period": "this week",
+      "granularity": "week"
+    }
+  },
+  {
+    "query": "which branch had the most orders overall",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "order_count",
+      "dimensions": [
+        "branch"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "wadiyenma revenue thiyenne mona sales rep latada",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "revenue",
+      "dimensions": [
+        "sales_rep"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "me maase aduwema sales volume thiyena branches list eka denna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "sales_volume",
+      "dimensions": [
+        "branch"
+      ],
+      "filters": {},
+      "time_period": "me maase",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "highest profit dunna top 5 product_name monawada",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "profit",
+      "dimensions": [
+        "product_name"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "wadiyenma discount dunne mona customer segment ekatada",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "ranking",
+      "target_metric": "discount",
+      "dimensions": [
+        "customer_segment"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "mata me deka athara wenasa pennanna puluwanda puluwanda",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "profit_margin",
+      "dimensions": [
+        "region"
+      ],
+      "filters": {},
+      "time_period": "last_month",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "channel eke retail and wholesale profit eka compare karala balanna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "profit_margin",
+      "dimensions": [
+        "channel"
+      ],
+      "filters": {},
+      "time_period": "q3",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "colombo branch ekai kandy branch ekai compare karanna mcn",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "profit_margin",
+      "dimensions": [
+        "department"
+      ],
+      "filters": {},
+      "time_period": "q3",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "retail and wholesale profit eka compare karala balanna mcn",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "revenue",
+      "dimensions": [
+        "channel"
+      ],
+      "filters": {},
+      "time_period": "last_month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "ane colombo branch ekai kandy branch ekai compare karanna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "average_order_value",
+      "dimensions": [
+        "product_type"
+      ],
+      "filters": {},
+      "time_period": "q3",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "channel eke retail and wholesale profit eka compare karala balanna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "sales",
+      "dimensions": [
+        "channel"
+      ],
+      "filters": {},
+      "time_period": "last_month",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "Provide a comparative performance analysis of revenue segmented by department.",
+    "language": "en",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "revenue",
+      "dimensions": [
+        "department"
+      ],
+      "filters": {},
+      "time_period": "last_month",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "how does product_type A compare with B on sales?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "sales",
+      "dimensions": [
+        "product_type"
+      ],
+      "filters": {},
+      "time_period": "q3",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "how does department A compare with B on average_order_value?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "average_order_value",
+      "dimensions": [
+        "department"
+      ],
+      "filters": {},
+      "time_period": "last_year",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "how does product_type A compare with B on revenue?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "comparison",
+      "target_metric": "revenue",
+      "dimensions": [
+        "product_type"
+      ],
+      "filters": {},
+      "time_period": "q3",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "Display the monthly sales trajectory across the past four quarters.",
+    "language": "en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "monthly_sales",
+      "dimensions": [
+        "month"
+      ],
+      "filters": {},
+      "time_period": "past 4 quarters",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "Analyze the daily orders trend over the last 30 days.",
+    "language": "en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "daily_orders",
+      "dimensions": [
+        "order_date"
+      ],
+      "filters": {},
+      "time_period": "last 30 days",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "Provide a quarterly revenue movement analysis for the current fiscal year.",
+    "language": "en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "quarterly_revenue",
+      "dimensions": [
+        "quarter"
+      ],
+      "filters": {},
+      "time_period": "current fiscal year",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "Show historical profit growth trends segmented by year.",
+    "language": "en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "profit_growth",
+      "dimensions": [
+        "year"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "how have daily orders been looking over the last week?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "daily_orders",
+      "dimensions": [
+        "order_date"
+      ],
+      "filters": {},
+      "time_period": "last week",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "show me monthly sales going up or down this year",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "monthly_sales",
+      "dimensions": [
+        "month"
+      ],
+      "filters": {},
+      "time_period": "this year",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "last 6 months wala sales trend eka kohomada",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "monthly_sales",
+      "dimensions": [
+        "month"
+      ],
+      "filters": {},
+      "time_period": "last 6 months",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "quarterly revenue eka quarters walata wadi wenawada adu wenawada balanna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "quarterly_revenue",
+      "dimensions": [
+        "quarter"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "daily order volume eke wenasweema pennanna me month eke",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "daily_orders",
+      "dimensions": [
+        "order_date"
+      ],
+      "filters": {},
+      "time_period": "this month",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "profit growth eka year over year kohomada change wenne",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "trend",
+      "target_metric": "profit_growth",
+      "dimensions": [
+        "year"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "Display the distribution of order amounts categorized by price bracket for the past quarter.",
+    "language": "en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "order_amount",
+      "dimensions": [
+        "price_bracket"
+      ],
+      "filters": {},
+      "time_period": "past quarter",
+      "granularity": "quarter"
+    }
+  },
+  {
+    "query": "What is the concentration of discount percentages across different discount ranges this year?",
+    "language": "en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "discount_percentage",
+      "dimensions": [
+        "discount_range"
+      ],
+      "filters": {},
+      "time_period": "this year",
+      "granularity": "year"
+    }
+  },
+  {
+    "query": "Provide a frequency distribution analysis of deal sizes for current month orders.",
+    "language": "en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "deal_size",
+      "dimensions": [
+        "frequency"
+      ],
+      "filters": {},
+      "time_period": "current month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "how are unit prices spread out across price brackets lately?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "unit_price",
+      "dimensions": [
+        "price_bracket"
+      ],
+      "filters": {},
+      "time_period": "lately",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "show me order amount histogram or spread for this week",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "order_amount",
+      "dimensions": [
+        "frequency"
+      ],
+      "filters": {},
+      "time_period": "this week",
+      "granularity": "week"
+    }
+  },
+  {
+    "query": "which discount range got the most orders today?",
+    "language": "casual_en",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "discount_percentage",
+      "dimensions": [
+        "discount_range"
+      ],
+      "filters": {},
+      "time_period": "today",
+      "granularity": "day"
+    }
+  },
+  {
+    "query": "order amounts wala distribution eka kohomada price bracket ekata spread wela thiyenne",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "order_amount",
+      "dimensions": [
+        "price_bracket"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "discount percentage eka discount range ekata spread wela thiyena widiha pennanna",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "discount_percentage",
+      "dimensions": [
+        "discount_range"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "deal sizes wala frequency eka balanna puluwanda me month eke",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "deal_size",
+      "dimensions": [
+        "frequency"
+      ],
+      "filters": {},
+      "time_period": "this month",
+      "granularity": "month"
+    }
+  },
+  {
+    "query": "godak orders fall wenne mona price bracket ekatada order amount eka baluwama",
+    "language": "singlish",
+    "intent_json": {
+      "intent": "distribution",
+      "target_metric": "order_amount",
+      "dimensions": [
+        "price_bracket"
+      ],
+      "filters": {},
+      "time_period": null,
+      "granularity": "month"
+    }
+  }
+]

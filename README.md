@@ -2,119 +2,109 @@
 
 **LUMYD (Let Us Mine Your Data)** is a full-stack business-intelligence platform that transforms uploaded CSV and Excel datasets into structured metadata, statistical profiles, semantic business knowledge, persisted evidence, and traceable answers to natural-language questions.
 
-## Project status
+---
 
-LUMYD is under active development. The ingestion, knowledge-building, and evidence-backed analyst foundations are operational.
+## Project Status
 
-### Implemented
+LUMYD is under active development. The ingestion pipeline, semantic discovery, statistical knowledge-building, evidence-backed analyst engine, and the **Gemini-powered active learning bootstrap** are operational.
 
-- Dataset ingestion for CSV, XLS, and XLSX files
-- File-type validation and a 50 MB upload limit
-- UUID-based file storage and PostgreSQL dataset records
-- Background metadata extraction and processing status tracking
-- Row, column, datatype, nullability, and cardinality discovery
-- Business-type and business-role inference
-- Currency, percentage, and aggregation inference
-- Derived and redundant column detection
-- Numeric statistics, categorical distributions, and outlier detection
-- Persisted column profiles and histogram data
-- Pairwise categorical/numeric and numeric/numeric evidence
-- Persisted Combination Store with aggregated business facts
-- Query-adaptive evidence ranking
-- Dataset-aware natural-language query parsing
-- Persisted analyst queries with fact and relationship trace IDs
-- React interfaces for upload, schema inspection, profiles, and questions
+### Implemented Features
 
-### Current processing pipeline
+- **Dataset Ingestion**: CSV, XLS, and XLSX uploads with size (50 MB) and type validation.
+- **UUID-based File Storage & PostgreSQL Records**: Safe multi-user uploads with background tracking.
+- **Technical & Semantic Discovery**: Automated inference of business roles (`MEASURE`, `RATE`, `DIMENSION`, `ENTITY`, `IDENTIFIER`, `TIME_DIMENSION`), units, supported aggregations, and derived/redundant columns.
+- **Deep Statistical Column Profiles**: Mean, median, range, standard deviation, IQR-based outlier detection, and 10-bin distribution histograms.
+- **Pairwise Evidence Discovery**: Statistical links via **One-way ANOVA** (categorical $\times$ numeric) and **Pearson Correlation** (numeric $\times$ numeric).
+- **Persisted Combination Store**: Fast dimension-level pre-aggregated metrics (sum, mean, count) with SHA-256 combination hashing.
+- **Traceable Business Question Answering**: Natural-language query parsing tied directly to persisted `fact_id` and `relationship_id` evidence packages.
+- **Active Learning & Synthetic Data Bootstrap (New)**:
+  - Synthetic Query Generation powered by `gemini-3.6-flash` supporting English, business colloquialisms, and code-mixed **Singlish** (*"sales adu une ai mcn"*).
+  - Ground-truth intent and slot extraction across 5 core analytical tasks (`root_cause`, `ranking`, `comparison`, `trend`, `distribution`).
+  - **Gemini Free-Tier Quota Guard**: Client-side rate-limiting ($\ge 4.1\text{s}$ interval $\le 15$ RPM), daily safety ceiling (1,000 requests/day), persistent quota tracking, query caching, and exponential backoff.
+- **Modern Responsive Frontend**: React 19, TypeScript, Material UI editorial warm design system, dataset library, schema inspector, and question interface.
+
+---
+
+## Processing & Intelligence Pipeline
 
 ```text
-Upload and validate dataset
-        ↓
-Store file and dataset record
-        ↓
-Discover technical schema
-        ↓
-Infer business semantics
-        ↓
-Build statistical column profiles
-        ↓
-Discover pairwise relationships
-        ↓
-Build the persisted Combination Store
-        ↓
-Answer questions using ranked, traceable evidence
+Upload CSV / Excel Dataset
+            ↓
+Store File & Initialize PostgreSQL Record
+            ↓
+Technical & Semantic Discovery (Roles, Types, Units)
+            ↓
+Statistical Column Profiling (Distributions & Outliers)
+            ↓
+Pairwise Evidence Mining (ANOVA & Pearson Correlation)
+            ↓
+Persisted Combination Store Indexing
+            ↓
+Natural Language Understanding (Local Router + Gemini Active Learning)
+            ↓
+Evidence Retrieval & Traceable Answer Generation
 ```
 
-## Technology stack
+---
+
+## Technology Stack
 
 ### Frontend
-
-- React 19
-- TypeScript
-- Vite
-- Material UI
-- Axios
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **Material UI (MUI)**
+- **Axios**
 
 ### Backend
+- **FastAPI**
+- **SQLAlchemy**
+- **PostgreSQL**
+- **Pydantic v2**
+- **Google GenAI SDK (`google-genai`)** (`gemini-3.6-flash`)
+- **Pandas, NumPy & SciPy**
+- **Uvicorn**
 
-- FastAPI
-- SQLAlchemy
-- Pydantic
-- Pandas
-- NumPy
-- SciPy
-- Uvicorn
+---
 
-### Database
+## Architecture: Active Learning & Dual-Stage Router
 
-- PostgreSQL
-
-## Main features
-
-### Dataset ingestion
-
-Uploaded files are assigned UUID filenames and stored in `backend/uploads`. Original filenames, storage paths, processing status, row counts, and column counts are stored in PostgreSQL.
-
-### Metadata and semantic discovery
-
-Every column receives technical and business metadata, including:
-
-- Technical and Python datatype
-- Business type: `NUMERIC`, `CATEGORICAL`, `DATETIME`, or `TEXT`
-- Business role: `MEASURE`, `RATE`, `DIMENSION`, `ENTITY`, `IDENTIFIER`, or `TIME_DIMENSION`
-- Unit and supported aggregations
-- Nullability, derived status, and redundancy status
-
-### Column Knowledge Builder
-
-LUMYD calculates and persists:
-
-- Mean, median, minimum, maximum, and standard deviation
-- Unique-value and null counts
-- IQR-based outlier counts
-- Numeric histogram distributions
-- Top-value categorical distributions
-
-### Evidence and Combination Store
-
-The evidence layer stores relationships between dimensions and measures, significant numeric correlations, effect strengths, significance values, and supporting details. The Combination Store persists dimension-level sums, means, and counts for fast retrieval.
-
-### Ask LUMYD
-
-Users can select a processed dataset and ask questions such as:
+To handle diverse user questions across formal English, informal slang, and code-mixed **Singlish**, LUMYD is adopting a dual-stage neural routing framework:
 
 ```text
-What are the top regions by sales amount and why?
+               User Query (English / Singlish)
+                             │
+                             ▼
+            ┌─────────────────────────────────┐
+            │   Semantic Router & OOD Check   │
+            │   (paraphrase-multilingual)     │
+            └────────────────┬────────────────┘
+                             │
+              Confidence Score vs. Threshold θ
+            ┌────────────────┴────────────────┐
+            │                                 │
+      Score ≥ θ (Known)                 Score < θ (Novel/Ambiguous)
+            │                                 │
+            ▼                                 ▼
+┌─────────────────────────────┐   ┌─────────────────────────────┐
+│  LUMYD Analytics Pipeline   │   │     Gemini Teacher API      │
+│ (ANOVA, Pearson, Combos)    │   │ (Zero-Shot Slot Extraction  │
+│                             │   │   + Intent Classification)  │
+└─────────────────────────────┘   └──────────────┬──────────────┘
+                                                 │
+                                                 ▼
+                                  ┌─────────────────────────────┐
+                                  │    Active Learning Store    │
+                                  │ (Update Router Centroids &  │
+                                  │  LoRA Fine-Tune Local SLM)  │
+                                  └─────────────────────────────┘
 ```
 
-The hybrid parser detects the intent, metric, dimensions, filters, and time context. The retrieval engine ranks persisted facts and returns traceable evidence containing query, fact, and relationship IDs.
+---
 
-This is currently an evidence-retrieval interface, not a generative LLM response layer.
+## API Endpoints
 
-## API endpoints
-
-### System and datasets
-
+### System & Datasets
 ```text
 GET  /
 GET  /api/v1/datasets
@@ -122,43 +112,41 @@ POST /api/v1/datasets/upload
 GET  /api/v1/datasets/{dataset_id}/schema
 ```
 
-### Analytics and persisted knowledge
-
+### Analytics & Statistical Knowledge
 ```text
 GET /api/v1/analytics/{dataset_id}/evidence
 GET /api/v1/analytics/{dataset_id}/relationships
 GET /api/v1/analytics/{dataset_id}/facts
 ```
 
-### Analyst
-
+### Analyst Engine
 ```text
 POST /api/v1/analyst/{dataset_id}/query
 ```
 
-Example request:
-
+**Example Request:**
 ```json
 {
   "query_text": "What are the top regions by sales amount and why?"
 }
 ```
 
-Interactive API documentation is available at `http://localhost:8000/docs` while the backend is running.
+Interactive OpenAPI documentation is available at `http://localhost:8000/docs`.
 
-## Local setup
+---
 
-### 1. PostgreSQL
+## Local Setup
 
-Create a PostgreSQL database and user, then add `backend/.env`:
+### 1. Environment Configuration
+
+Create `backend/.env` (see `backend/.env.example`):
 
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/lumyd
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-The application creates new tables automatically. A compatibility migration adds semantic fields to databases created by earlier project phases.
-
-### 2. Backend
+### 2. Backend Setup
 
 From the repository root:
 
@@ -170,17 +158,23 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-The backend runs at `http://127.0.0.1:8000`.
+The API will be available at `http://127.0.0.1:8000`.
 
-### 3. Frontend
+### 3. Generate Synthetic Queries (Active Learning Bootstrap)
 
-Create `frontend/.env` if a different API URL is required:
+To populate the synthetic query training set with quota-guarded Gemini generation:
 
-```env
-VITE_API_URL=http://localhost:8000/api/v1
+```powershell
+# Live generation with Gemini (respecting Free Tier rate limits):
+python backend/scripts/generate_synthetic_queries.py --samples-per-intent 20
+
+# Or offline mock generation (no API calls):
+python backend/scripts/generate_synthetic_queries.py --offline-mock --samples-per-intent 50
 ```
 
-Then run:
+### 4. Frontend Setup
+
+From the repository root:
 
 ```powershell
 cd frontend
@@ -188,56 +182,58 @@ npm install
 npm run dev
 ```
 
-The frontend normally runs at `http://localhost:5173`.
+The frontend will be available at `http://localhost:5173`.
 
-## Development checks
+---
+
+## Development Checks
 
 ```powershell
+# Frontend lint & build
 cd frontend
 npm run lint
 npm run build
 ```
 
-## Repository structure
+---
+
+## Repository Structure
 
 ```text
 LUMYD/
 ├── backend/
 │   ├── app/
 │   │   ├── api/          # Dataset, analytics, and analyst routes
-│   │   ├── database/     # SQLAlchemy session and compatibility migration
-│   │   ├── models/       # Dataset, metadata, stats, knowledge, and query tables
-│   │   ├── schemas/      # API request and response models
-│   │   ├── services/     # Ingestion and intelligence pipeline
-│   │   └── utils/        # Upload validation
-│   ├── uploads/          # Git-ignored uploaded datasets
-│   ├── main.py
-│   └── requirements.txt
+│   │   ├── core/         # Gemini Quota Guard & rate limiting
+│   │   ├── database/     # SQLAlchemy session & compatibility migrations
+│   │   ├── models/       # Dataset, metadata, stats, knowledge, query models
+│   │   ├── schemas/      # Pydantic request and response schemas
+│   │   ├── services/     # Ingestion, profiling, relationship & retrieval engines
+│   │   └── utils/        # File validation utilities
+│   ├── data/             # Synthetic query datasets & quota trackers
+│   ├── scripts/          # Synthetic query generator & utilities
+│   ├── uploads/          # Local storage for uploaded files (git-ignored)
+│   ├── .env.example      # Environment variables template
+│   ├── main.py           # FastAPI entrypoint
+│   └── requirements.txt  # Python backend dependencies
 └── frontend/
     └── src/
-        ├── components/   # Upload, schema, profile, and analyst interfaces
-        ├── services/     # Backend API client
-        └── App.tsx
+        ├── components/   # FileUpload, SchemaTable, ColumnProfileCard, AnalystPanel
+        ├── services/     # Axios API client
+        ├── App.tsx       # Main dashboard application
+        └── main.tsx      # Theme provider & root entrypoint
 ```
 
-## Remaining roadmap
+---
 
-- LLM-generated narrative answers with evidence citations
-- Time-aware trend and comparison calculations
-- Multi-dimension combination facts
-- Dataset deletion and explicit reprocessing controls
-- Authentication and user-specific workspaces
-- Database migrations managed through Alembic
-- Automated backend and frontend tests
-- Forecasting and recommendation engines
-- Production deployment, monitoring, and CI/CD
+## Security Notes
 
-## Security notes
+- **Never commit `.env` files or API keys.**
+- Uploaded datasets and runtime trackers (`gemini_quota_tracker.json`) are excluded from Git.
+- Free-tier rate limits and safety budgets are strictly enforced by `GeminiQuotaGuard`.
 
-- Do not commit `.env` files or database credentials.
-- Uploaded datasets are excluded from Git.
-- CORS is currently configured for the local Vite development origin.
+---
 
 ## License
 
-No license has been specified yet.
+All rights reserved.

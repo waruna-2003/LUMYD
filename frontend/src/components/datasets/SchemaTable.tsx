@@ -33,11 +33,11 @@ interface SchemaTableProps {
 
 export function SchemaTable({ columns }: SchemaTableProps) {
   return (
-    <Paper sx={{ p: 2, mt: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Detected Data Structure
-      </Typography>
-      <Table size="small">
+    <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mt: 3 }}>
+      <Typography variant="overline" color="text.secondary">Intelligence profile</Typography>
+      <Typography variant="h5" sx={{ mb: 2 }}>Detected data structure</Typography>
+      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
+      <Table size="small" sx={{ minWidth: 920 }}>
         <TableHead>
           <TableRow>
             <TableCell>Column Name</TableCell>
@@ -71,8 +71,9 @@ export function SchemaTable({ columns }: SchemaTableProps) {
           ))}
         </TableBody>
       </Table>
-      <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-        Column Knowledge Profiles
+      </Paper>
+      <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+        Column knowledge profiles
       </Typography>
       <Grid container spacing={2}>
         {columns.map((column) => (

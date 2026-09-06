@@ -29,7 +29,7 @@ function formatNumber(value: number | null) {
 
 export function ColumnProfileCard({ name, type, stats }: ColumnProfileCardProps) {
   return (
-    <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+    <Card variant="outlined" sx={{ height: '100%', '&:hover': { borderColor: 'primary.light' } }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: 1 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }} noWrap>{name}</Typography>

@@ -2,15 +2,19 @@
 # Python
 # ==========================
 backend/venv/
+.venv/
 backend/__pycache__/
 backend/**/*.pyc
 backend/.pytest_cache/
 backend/uploads/*
 !backend/uploads/.gitkeep
+backend/data/*_tracker.json
+backend/data/*_cache.json
 
 # Environment Variables
 backend/.env
 .env
+*.env
 
 # ==========================
 # Node.js

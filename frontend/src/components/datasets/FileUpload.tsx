@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { Button, Paper, LinearProgress } from '@mui/material';
+import { Button, Box, Paper, LinearProgress, Typography } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { datasetService } from '../../services/api';
 
@@ -26,7 +26,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
   };
 
   return (
-    <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', mb: 4 }}>
+    <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, mb: 3, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 2, borderStyle: 'dashed', bgcolor: 'rgba(252,250,246,0.7)' }}>
       <input
         accept=".csv,.xlsx,.xls"
         style={{ display: 'none' }}
@@ -34,12 +34,16 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
         type="file"
         onChange={handleFileChange}
       />
+      <Box>
+        <Typography variant="h6">Add a dataset</Typography>
+        <Typography variant="body2" color="text.secondary">CSV or Excel · maximum 50 MB</Typography>
+      </Box>
       <label htmlFor="file-upload-input">
         <Button variant="contained" component="span" startIcon={<UploadFileIcon />} disabled={loading}>
-          {loading ? "Processing..." : "Upload Business Dataset"}
+          {loading ? 'Processing…' : 'Choose file'}
         </Button>
       </label>
-      {loading && <LinearProgress sx={{ mt: 2 }} />}
+      {loading && <LinearProgress sx={{ position: 'absolute', left: 0, right: 0, bottom: 0 }} />}
     </Paper>
   );
 }
