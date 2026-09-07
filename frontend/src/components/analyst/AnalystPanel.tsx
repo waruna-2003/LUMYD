@@ -19,6 +19,8 @@ import {
 
 import { datasetService } from '../../services/api';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
+import HourglassTopOutlinedIcon from '@mui/icons-material/HourglassTopOutlined';
 
 interface DatasetOption {
   id: string;
@@ -36,7 +38,14 @@ interface EvidenceObservation {
   relevance_score: number;
 }
 
-interface AnalystResult {
+export interface RoutingInfo {
+  route: 'AUTOMATED_EXECUTION' | 'HUMAN_ESCALATION';
+  confidence: number;
+  resolved_by: 'local_router' | 'gemini_triage' | 'pending_triage';
+  escalated: boolean;
+}
+
+export interface AnalystResult {
   query_id: number;
   structured_query: {
     intent: string;
@@ -45,8 +54,12 @@ interface AnalystResult {
     filters: Record<string, unknown>;
   };
   evidence_package: {
+    status?: string;
+    message?: string;
+    escalation_id?: string;
     observations: EvidenceObservation[];
   };
+  routing_info?: RoutingInfo;
 }
 
 interface AnalystPanelProps {
@@ -146,9 +159,60 @@ export function AnalystPanel({ datasets }: AnalystPanelProps) {
 }
 
 function AnalystAnswer({ result }: { result: AnalystResult }) {
+  const isEscalated =
+    result.routing_info?.escalated || result.evidence_package?.status === 'ESCALATED';
+
+  if (isEscalated) {
+    return (
+      <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #48433E' }}>
+        <Alert
+          severity="warning"
+          icon={<HourglassTopOutlinedIcon />}
+          sx={{
+            bgcolor: 'rgba(255, 179, 0, 0.12)',
+            border: '1px solid rgba(255, 179, 0, 0.4)',
+            color: '#FAF7F2',
+            '& .MuiAlert-icon': { color: '#FFB300' },
+          }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            Query Diverted to Triage Queue
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5, color: '#E0D8D0' }}>
+            {result.evidence_package?.message ||
+              'This question was out of scope or below neural router confidence. It has been recorded for review.'}
+          </Typography>
+          {result.evidence_package?.escalation_id && (
+            <Chip
+              label={`Escalation Ticket #${result.evidence_package.escalation_id.slice(0, 8)}`}
+              size="small"
+              sx={{ mt: 1.5, bgcolor: '#48433E', color: '#FAF7F2' }}
+            />
+          )}
+        </Alert>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #48433E' }}>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap' }}>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+        {result.routing_info?.resolved_by === 'local_router' && (
+          <Chip
+            icon={<BoltOutlinedIcon />}
+            label={`Local Router (${(result.routing_info.confidence * 100).toFixed(0)}% match · Zero Cost)`}
+            color="success"
+            variant="filled"
+          />
+        )}
+        {result.routing_info?.resolved_by === 'gemini_triage' && (
+          <Chip
+            icon={<AutoAwesomeOutlinedIcon />}
+            label="Gemini 3.6 Flash Fallback · Learned"
+            color="secondary"
+            variant="filled"
+          />
+        )}
         <Chip label={`Query #${result.query_id}`} variant="outlined" sx={{ color: '#D9D2CA', borderColor: '#625B54' }} />
         <Chip label={`Intent: ${result.structured_query.intent}`} color="primary" />
         <Chip label={`Metric: ${result.structured_query.target_metric}`} color="secondary" />

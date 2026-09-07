@@ -22,7 +22,7 @@ class QueryParser:
 
     @staticmethod
     def parse_natural_language(
-        db: Session, dataset_id: str, query_text: str
+        db: Session, dataset_id: str, query_text: str, intent_override: str | None = None
     ) -> dict[str, object]:
         text = re.sub(r"[_\-]+", " ", query_text.lower())
         columns = (
@@ -58,15 +58,18 @@ class QueryParser:
             if QueryParser._matches(text, dimension)
         ]
 
-        intent = "trend"
-        if any(word in text for word in ("why", "cause", "reason", "driver")):
-            intent = "root_cause"
-        elif any(word in text for word in ("compare", "versus", " vs ")):
-            intent = "comparison"
-        elif any(word in text for word in ("top", "best", "rank", "highest", "lowest")):
-            intent = "ranking"
-        elif any(word in text for word in ("distribution", "spread", "frequency")):
-            intent = "distribution"
+        if intent_override:
+            intent = intent_override
+        else:
+            intent = "trend"
+            if any(word in text for word in ("why", "cause", "reason", "driver")):
+                intent = "root_cause"
+            elif any(word in text for word in ("compare", "versus", " vs ")):
+                intent = "comparison"
+            elif any(word in text for word in ("top", "best", "rank", "highest", "lowest")):
+                intent = "ranking"
+            elif any(word in text for word in ("distribution", "spread", "frequency")):
+                intent = "distribution"
 
         filters: dict[str, str] = {}
         facts = (

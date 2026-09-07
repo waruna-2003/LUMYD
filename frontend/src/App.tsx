@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Container, Typography, Grid, Card, CardContent, Chip, Stack } from '@mui/material';
 import DatasetOutlinedIcon from '@mui/icons-material/DatasetOutlined';
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { FileUpload } from './components/datasets/FileUpload';
 import { SchemaTable, type ColumnMeta } from './components/datasets/SchemaTable';
-import { datasetService } from './services/api';
+import { datasetService, analystService } from './services/api';
 import { AnalystPanel } from './components/analyst/AnalystPanel';
+import { AdminTriagePanel } from './components/analyst/AdminTriagePanel';
 
 interface Dataset {
   id: string;
@@ -17,6 +20,8 @@ function App() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [schema, setSchema] = useState<ColumnMeta[] | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'analyst' | 'admin'>('analyst');
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   const loadDatasets = async () => {
     const res = await datasetService.fetchDatasets();
@@ -34,6 +39,9 @@ function App() {
     datasetService.fetchDatasets().then((response) => {
       setDatasets(response.data);
     });
+    analystService.fetchPendingEscalations().then((response) => {
+      setPendingCount(response.data.length);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -60,7 +68,35 @@ function App() {
             </Box>
             <Typography variant="h6">LUMYD</Typography>
           </Stack>
-          <Chip label="Intelligence workspace" size="small" variant="outlined" />
+
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Button
+              variant={viewMode === 'analyst' ? 'contained' : 'outlined'}
+              size="small"
+              startIcon={<AutoAwesomeOutlinedIcon />}
+              onClick={() => setViewMode('analyst')}
+              sx={{ borderRadius: 2 }}
+            >
+              Analyst
+            </Button>
+            <Button
+              variant={viewMode === 'admin' ? 'contained' : 'outlined'}
+              size="small"
+              startIcon={<ShieldOutlinedIcon />}
+              onClick={() => setViewMode('admin')}
+              sx={{ borderRadius: 2 }}
+            >
+              Admin Triage
+              {pendingCount > 0 && (
+                <Chip
+                  label={pendingCount}
+                  size="small"
+                  color="warning"
+                  sx={{ ml: 1, height: 20, fontSize: '0.72rem', fontWeight: 700 }}
+                />
+              )}
+            </Button>
+          </Stack>
         </Stack>
         <Typography variant="overline" color="primary.main" sx={{ fontWeight: 700, letterSpacing: '0.12em' }}>
           Let us mine your data
@@ -72,8 +108,14 @@ function App() {
           Upload operational data, inspect its structure, and ask focused questions backed by traceable facts.
         </Typography>
       </Box>
+
       <FileUpload onUploadSuccess={loadDatasets} />
-      <AnalystPanel datasets={datasets} />
+
+      {viewMode === 'analyst' ? (
+        <AnalystPanel datasets={datasets} />
+      ) : (
+        <AdminTriagePanel onEscalationCountChange={setPendingCount} />
+      )}
 
       <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'end', mt: 6, mb: 2 }}>
         <Box>

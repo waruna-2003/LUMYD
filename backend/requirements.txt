@@ -10,3 +10,4 @@ scipy
 openpyxl
 pydantic
 google-genai>=1.0.0
+sentence-transformers>=3.0.0

@@ -17,11 +17,18 @@ LUMYD is under active development. The ingestion pipeline, semantic discovery, s
 - **Pairwise Evidence Discovery**: Statistical links via **One-way ANOVA** (categorical $\times$ numeric) and **Pearson Correlation** (numeric $\times$ numeric).
 - **Persisted Combination Store**: Fast dimension-level pre-aggregated metrics (sum, mean, count) with SHA-256 combination hashing.
 - **Traceable Business Question Answering**: Natural-language query parsing tied directly to persisted `fact_id` and `relationship_id` evidence packages.
-- **Active Learning & Synthetic Data Bootstrap (New)**:
-  - Synthetic Query Generation powered by `gemini-3.6-flash` supporting English, business colloquialisms, and code-mixed **Singlish** (*"sales adu une ai mcn"*).
-  - Ground-truth intent and slot extraction across 5 core analytical tasks (`root_cause`, `ranking`, `comparison`, `trend`, `distribution`).
-  - **Gemini Free-Tier Quota Guard**: Client-side rate-limiting ($\ge 4.1\text{s}$ interval $\le 15$ RPM), daily safety ceiling (1,000 requests/day), persistent quota tracking, query caching, and exponential backoff.
-- **Modern Responsive Frontend**: React 19, TypeScript, Material UI editorial warm design system, dataset library, schema inspector, and question interface.
+- **Multilingual Neural Router (`sentence-transformers`)**:
+  - Encodes queries using `paraphrase-multilingual-MiniLM-L12-v2`.
+  - Prototype centroid + nearest-exemplar hybrid vector matching with decision threshold $\theta = 0.60$.
+  - Executes in-distribution English and Singlish queries on CPU with **zero API cost**.
+- **Gemini-Powered Active Learning & Auto-Triage**:
+  - Low-confidence or novel queries automatically fallback to `gemini-3.6-flash`.
+  - Strictly protected by **Gemini Free-Tier Quota Guard**: Client-side rate-limiting ($\ge 4.1\text{s}$ interval $\le 15$ RPM), daily safety ceiling (1,000 requests/day), persistent quota tracking, query caching, and exponential backoff.
+  - Closed active learning loop: Auto-triaged queries are dynamically appended to `AgentTask.sample_queries`, instantly re-warming the local router so repeat questions run locally.
+- **Admin Triage & Governance Workspace**:
+  - Dedicated admin panel in React 19 / MUI displaying pending escalations and initial confidence.
+  - One-click ground-truth labeling to retrain the local router cache.
+  - Live Gemini API Free Tier quota progress bar and rate-limiter monitoring.
 
 ---
 

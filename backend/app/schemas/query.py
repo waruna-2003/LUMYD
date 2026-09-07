@@ -1,5 +1,5 @@
-from typing import Any
-
+from datetime import datetime
+from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
@@ -17,7 +17,37 @@ class QueryStructure(BaseModel):
     granularity: str = "month"
 
 
+class RoutingInfo(BaseModel):
+    route: str
+    confidence: float
+    resolved_by: str  # "local_router", "gemini_triage", "pending_triage"
+    escalated: bool
+
+
 class QueryResponse(BaseModel):
     query_id: int
     structured_query: QueryStructure
     evidence_package: dict[str, Any]
+    routing_info: Optional[RoutingInfo] = None
+
+
+class ResolveEscalationRequest(BaseModel):
+    escalation_id: str
+    target_task_name: str
+    admin_notes: Optional[str] = None
+
+
+class EscalationItemResponse(BaseModel):
+    id: str
+    dataset_id: str
+    raw_query: str
+    confidence_score: float
+    predicted_task: Optional[str] = None
+    status: str
+    resolved_task: Optional[str] = None
+    admin_notes: Optional[str] = None
+    created_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

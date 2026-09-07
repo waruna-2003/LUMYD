@@ -16,4 +16,16 @@ export const datasetService = {
     api.post(`/analyst/${datasetId}/query`, { query_text: queryText }),
 };
 
+export const analystService = {
+  askAnalyst: (datasetId: string, queryText: string) =>
+    api.post(`/analyst/${datasetId}/query`, { query_text: queryText }),
+  fetchPendingEscalations: () => api.get('/analyst/escalations/pending'),
+  resolveEscalation: (payload: {
+    escalation_id: string;
+    target_task_name: string;
+    admin_notes?: string;
+  }) => api.post('/analyst/escalations/resolve', payload),
+  fetchQuotaStatus: () => api.get('/analyst/quota/status'),
+};
+
 export default api;

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import analyst, analytics, datasets
 from app.database.migrations import ensure_semantic_columns
 from app.database.session import Base, engine
-from app.models import column, column_stats, dataset, knowledge, query  # noqa: F401
+from app.models import agent, column, column_stats, dataset, knowledge, query  # noqa: F401
 
 Base.metadata.create_all(bind=engine)
 ensure_semantic_columns(engine)
