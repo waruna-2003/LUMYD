@@ -11,6 +11,7 @@ from app.models.dataset import Dataset
 from app.models.query import AnalystQuery
 from app.schemas.query import (
     EscalationItemResponse,
+    NarrativeResponse,
     QueryRequest,
     QueryResponse,
     QueryStructure,
@@ -18,11 +19,76 @@ from app.schemas.query import (
     RoutingInfo,
 )
 from app.services.agent_router import AgentRouterService
+from app.services.analytical_tasks import AnalyticalTaskEngine
 from app.services.gemini_triage_service import gemini_triage
+from app.services.narrative_generator import MultilingualNarrativeGenerator
 from app.services.query_parser import QueryParser
 from app.services.retrieval_engine import RetrievalEngine
 
 router = APIRouter(prefix="/analyst", tags=["analyst"])
+
+
+def _execute_analytical_intelligence(
+    dataset: Dataset, structure: QueryStructure, raw_query: str, db: Session
+) -> tuple[Any, Any]:
+    from pathlib import Path
+    import pandas as pd
+
+    try:
+        from app.services.storage_service import StorageService
+        resolved_path = StorageService.resolve_file_path(dataset.storage_path)
+        ext = Path(resolved_path).suffix.lower()
+        df = pd.read_csv(resolved_path) if ext == ".csv" else pd.read_excel(resolved_path)
+
+        metric = structure.target_metric
+        # Validate metric is in df; if not, find first numeric column
+        if metric not in df.columns:
+            numeric_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+            if numeric_cols:
+                metric = numeric_cols[0]
+
+        # Determine primary dimension
+        dimension = (
+            structure.dimensions[0]
+            if structure.dimensions and structure.dimensions[0] in df.columns
+            else None
+        )
+        if not dimension:
+            cat_cols = [c for c in df.columns if df[c].dtype == "object" and df[c].nunique() < 50]
+            dimension = cat_cols[0] if cat_cols else df.columns[0]
+
+        intent = structure.intent
+        if intent == "ranking":
+            task_res = AnalyticalTaskEngine.execute_ranking(
+                df, metric=metric, dimension=dimension, filters=structure.filters
+            )
+        elif intent == "comparison":
+            task_res = AnalyticalTaskEngine.execute_comparison(
+                df, metric=metric, dimension=dimension, filters=structure.filters
+            )
+        elif intent == "root_cause":
+            task_res = AnalyticalTaskEngine.execute_root_cause(
+                df, metric=metric, target_dimension=dimension, filters=structure.filters
+            )
+        elif intent == "trend":
+            task_res = AnalyticalTaskEngine.execute_trend(
+                df, metric=metric, time_dimension=dimension, filters=structure.filters
+            )
+        elif intent == "distribution":
+            task_res = AnalyticalTaskEngine.execute_distribution(
+                df, metric=metric, dimension=dimension, filters=structure.filters
+            )
+        else:
+            task_res = AnalyticalTaskEngine.execute_ranking(
+                df, metric=metric, dimension=dimension, filters=structure.filters
+            )
+
+        narrative_dict = MultilingualNarrativeGenerator.generate_narrative(raw_query, task_res)
+        narrative = NarrativeResponse.model_validate(narrative_dict)
+        return task_res, narrative
+    except Exception as err:
+        print(f"[!] Analytical execution fallback warning: {err}")
+        return None, None
 
 
 @router.post("/{dataset_id}/query", response_model=QueryResponse)
@@ -56,6 +122,11 @@ def process_business_query(
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 
+        # Execute dedicated analytical task function & generate human narrative
+        task_res, narrative = _execute_analytical_intelligence(
+            dataset, structure, request.query_text, db
+        )
+
         query = AnalystQuery(
             dataset_id=dataset_id,
             query_text=request.query_text,
@@ -76,6 +147,8 @@ def process_business_query(
                 resolved_by="local_router",
                 escalated=False,
             ),
+            narrative=narrative,
+            task_result=task_res,
         )
 
     # -------------------------------------------------------------
@@ -125,6 +198,11 @@ def process_business_query(
             db, dataset_id, structure.model_dump()
         )
 
+        # Execute dedicated analytical task function & generate human narrative
+        task_res, narrative = _execute_analytical_intelligence(
+            dataset, structure, request.query_text, db
+        )
+
         query = AnalystQuery(
             dataset_id=dataset_id,
             query_text=request.query_text,
@@ -145,11 +223,38 @@ def process_business_query(
                 resolved_by="gemini_triage",
                 escalated=False,
             ),
+            narrative=narrative,
+            task_result=task_res,
         )
 
     # -------------------------------------------------------------
     # PATH C: Unresolvable / Out-of-Domain -> Safely Return Escalation Receipt
     # -------------------------------------------------------------
+    lang = MultilingualNarrativeGenerator.detect_language(request.query_text)
+    if lang == "singlish":
+        headline = "Oyaage query eka triage queue ekata escalate kala."
+        text = "Me question eka dataset eke thiyena metrics walata direct match une na. Ape team eken review karala model eka update karanna ticket ekak create kala."
+        takeaways = [
+            f"Ticket ID: #{escalation_id[:8] if escalation_id else 'N/A'}",
+            "Status: Pending Review Queue",
+            "Action: Admin triage dashboard eken resolve karanna puluwan",
+        ]
+    elif lang == "sinhala":
+        headline = "ඔබගේ ප්‍රශ්නය පරීක්ෂණ පෝලිමට යොමු කරන ලදී."
+        text = "මෙම ප්‍රශ්නය දත්ත පද්ධතියට සෘජුව නොගැලපෙන බැවින් පරිපාලක සමාලෝචනය සඳහා යොමු කර ඇත."
+        takeaways = [
+            f"ප්‍රවේශපත්‍ර අංකය: #{escalation_id[:8] if escalation_id else 'N/A'}",
+            "තත්ත්වය: සමාලෝචනය වෙමින් පවතී",
+        ]
+    else:
+        headline = "Query diverted to administrative review queue."
+        text = "This query could not be verified automatically against the dataset schema. It has been logged in the triage queue for review and model retraining."
+        takeaways = [
+            f"Ticket ID: #{escalation_id[:8] if escalation_id else 'N/A'}",
+            "Status: Pending Review Queue",
+            "Action: Awaiting ground-truth labeling in Admin Triage panel",
+        ]
+
     return QueryResponse(
         query_id=0,
         structured_query=QueryStructure(
@@ -173,6 +278,13 @@ def process_business_query(
             resolved_by="pending_triage",
             escalated=True,
         ),
+        narrative=NarrativeResponse(
+            headline=headline,
+            narrative_text=text,
+            key_takeaways=takeaways,
+            language_detected=lang,
+        ),
+        task_result=None,
     )
 
 

@@ -8,11 +8,19 @@ import {
   Chip,
   CircularProgress,
   FormControl,
+  Grid,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
@@ -21,6 +29,8 @@ import { datasetService } from '../../services/api';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import HourglassTopOutlinedIcon from '@mui/icons-material/HourglassTopOutlined';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import TranslateOutlinedIcon from '@mui/icons-material/TranslateOutlined';
 
 interface DatasetOption {
   id: string;
@@ -45,6 +55,79 @@ export interface RoutingInfo {
   escalated: boolean;
 }
 
+export interface NarrativeResponse {
+  headline: string;
+  narrative_text: string;
+  key_takeaways: string[];
+  language_detected: 'english' | 'singlish' | 'sinhala';
+}
+
+export interface RankingRow {
+  rank: number;
+  entity: string;
+  metric_value: number;
+  metric_mean: number;
+  record_count: number;
+  share_pct: number;
+  cumulative_share_pct: number;
+  diff_from_avg: number;
+}
+
+export interface TaskResultData {
+  task: string;
+  metric?: string;
+  dimension?: string;
+  total_value?: number;
+  average_per_entity?: number;
+  top_entity?: {
+    entity: string;
+    metric_value: number;
+    share_pct: number;
+  };
+  bottom_entity?: {
+    entity: string;
+    metric_value: number;
+  };
+  table_data?: RankingRow[];
+  total_entities_analyzed?: number;
+  entity_a?: {
+    name: string;
+    value: number;
+    record_count: number;
+  };
+  entity_b?: {
+    name: string;
+    value: number;
+    record_count: number;
+  };
+  delta?: number;
+  percentage_difference?: number;
+  winner?: string;
+  winner_margin?: number;
+  primary_driver?: {
+    dimension: string;
+    underperforming_category: string;
+    underperforming_mean: number;
+    top_performing_category: string;
+    top_performing_mean: number;
+    variance_impact_score: number;
+  };
+  trajectory?: string;
+  overall_growth_pct?: number;
+  peak_period?: {
+    period: string;
+    value: number;
+  };
+  trough_period?: {
+    period: string;
+    value: number;
+  };
+  mean?: number;
+  median?: number;
+  iqr?: number;
+  pareto_share_top_20pct?: number;
+}
+
 export interface AnalystResult {
   query_id: number;
   structured_query: {
@@ -60,6 +143,8 @@ export interface AnalystResult {
     observations: EvidenceObservation[];
   };
   routing_info?: RoutingInfo;
+  narrative?: NarrativeResponse;
+  task_result?: TaskResultData;
 }
 
 interface AnalystPanelProps {
@@ -176,10 +261,11 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
           }}
         >
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-            Query Diverted to Triage Queue
+            {result.narrative?.headline || 'Query Diverted to Triage Queue'}
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5, color: '#E0D8D0' }}>
-            {result.evidence_package?.message ||
+            {result.narrative?.narrative_text ||
+              result.evidence_package?.message ||
               'This question was out of scope or below neural router confidence. It has been recorded for review.'}
           </Typography>
           {result.evidence_package?.escalation_id && (
@@ -196,7 +282,8 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
 
   return (
     <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #48433E' }}>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+      {/* Routing Chips */}
+      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
         {result.routing_info?.resolved_by === 'local_router' && (
           <Chip
             icon={<BoltOutlinedIcon />}
@@ -221,32 +308,313 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
         ))}
       </Stack>
 
-      <Typography variant="h6" gutterBottom>Ranked evidence</Typography>
-      {result.evidence_package.observations.length === 0 ? (
-        <Alert severity="warning">
-          No matching persisted evidence was found. Try another metric or dimension.
-        </Alert>
-      ) : (
-        <Stack spacing={1.5}>
-          {result.evidence_package.observations.map((observation) => (
-            <Card variant="outlined" key={`${observation.fact_id}-${observation.relationship_id}`} sx={{ bgcolor: '#34302D', borderColor: '#4D4742', color: '#FAF7F2' }}>
-              <CardContent>
-                <Typography sx={{ fontWeight: 'bold' }}>{observation.factor}</Typography>
-                <Typography variant="h6">
-                  {observation.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+      {/* 1. Multilingual Human Narrative Card */}
+      {result.narrative && (
+        <Card
+          variant="outlined"
+          sx={{
+            mb: 3.5,
+            bgcolor: '#1E1C1A',
+            borderColor: '#5C544C',
+            color: '#FAF7F2',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
+              <TranslateOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+              <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light', letterSpacing: '0.08em' }}>
+                AI EXECUTIVE NARRATIVE · {result.narrative.language_detected.toUpperCase()}
+              </Typography>
+            </Stack>
+
+            <Typography variant="h6" sx={{ fontWeight: 700, color: '#FFFFFF', mb: 1.5 }}>
+              {result.narrative.headline}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#E0D8D0',
+                lineHeight: 1.6,
+                fontSize: '1rem',
+                p: 2,
+                borderRadius: 2,
+                bgcolor: '#282522',
+                border: '1px solid #3E3934',
+                mb: 2,
+              }}
+            >
+              {result.narrative.narrative_text}
+            </Typography>
+
+            {result.narrative.key_takeaways && result.narrative.key_takeaways.length > 0 && (
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#BEB6AD', textTransform: 'uppercase' }}>
+                  Key Findings
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#BEB6AD' }}>
-                  Contribution {(observation.contribution_score * 100).toFixed(1)}% · Relationship strength{' '}
-                  {(observation.relationship_strength * 100).toFixed(1)}%
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#928A82' }}>
-                  Evidence: fact #{observation.fact_id}, relationship #{observation.relationship_id}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Stack>
+                <Stack spacing={1} sx={{ mt: 1 }}>
+                  {result.narrative.key_takeaways.map((takeaway, idx) => (
+                    <Stack key={idx} direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+                      <LightbulbOutlinedIcon sx={{ color: '#FFCA28', fontSize: 18, mt: 0.2 }} />
+                      <Typography variant="body2" sx={{ color: '#FAF7F2' }}>
+                        {takeaway}
+                      </Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 2. Dedicated Analytical Task Visualizer */}
+      {result.task_result && <TaskVisualizer taskResult={result.task_result} />}
+
+      {/* 3. Deep Statistical Evidence Breakdown */}
+      {result.evidence_package.observations.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Statistical Evidence Points ({result.evidence_package.observations.length} observed)
+          </Typography>
+          <Stack spacing={1.5}>
+            {result.evidence_package.observations.slice(0, 5).map((observation) => (
+              <Card
+                variant="outlined"
+                key={`${observation.fact_id}-${observation.relationship_id}`}
+                sx={{ bgcolor: '#2C2825', borderColor: '#48423B', color: '#FAF7F2' }}
+              >
+                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                  <Typography sx={{ fontWeight: 'bold' }}>{observation.factor}</Typography>
+                  <Typography variant="h6">
+                    {observation.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#BEB6AD' }}>
+                    Contribution {(observation.contribution_score * 100).toFixed(1)}% · Relationship strength{' '}
+                    {(observation.relationship_strength * 100).toFixed(1)}%
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
       )}
     </Box>
   );
+}
+
+function TaskVisualizer({ taskResult }: { taskResult: TaskResultData }) {
+  const task = taskResult.task;
+
+  if (task === 'ranking' && taskResult.table_data) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#FAF7F2' }}>
+          Top {taskResult.table_data.length} Ranked by {taskResult.metric}
+        </Typography>
+        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#24211E', borderColor: '#48423B' }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ '& th': { color: '#BEB6AD', borderColor: '#3D3833', fontWeight: 700 } }}>
+                <TableCell>Rank</TableCell>
+                <TableCell>{taskResult.dimension}</TableCell>
+                <TableCell align="right">{taskResult.metric}</TableCell>
+                <TableCell align="right">Share of Total</TableCell>
+                <TableCell align="right">Gap from Average</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {taskResult.table_data.map((row: RankingRow) => (
+                <TableRow key={row.rank} sx={{ '& td': { color: '#FAF7F2', borderColor: '#332F2B' } }}>
+                  <TableCell>
+                    <Chip
+                      label={`#${row.rank}`}
+                      size="small"
+                      color={row.rank === 1 ? 'primary' : 'default'}
+                      sx={{ fontWeight: 700, height: 22 }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{row.entity}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                    {row.metric_value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+                      <Box sx={{ width: 60 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(row.share_pct, 100)}
+                          sx={{ height: 6, borderRadius: 3, bgcolor: '#3D3833' }}
+                        />
+                      </Box>
+                      <Typography variant="body2" sx={{ minWidth: 40, color: '#BEB6AD' }}>
+                        {row.share_pct}%
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: row.diff_from_avg >= 0 ? '#81C784' : '#FF8A65' }}>
+                    {row.diff_from_avg >= 0 ? `+${row.diff_from_avg.toLocaleString()}` : row.diff_from_avg.toLocaleString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    );
+  }
+
+  if (task === 'comparison' && taskResult.entity_a && taskResult.entity_b) {
+    const ea = taskResult.entity_a;
+    const eb = taskResult.entity_b;
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#FAF7F2' }}>
+          Head-to-Head Comparison: {ea.name} vs {eb.name}
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Card
+              variant="outlined"
+              sx={{
+                p: 2,
+                bgcolor: taskResult.winner === ea.name ? 'rgba(76, 175, 80, 0.08)' : '#2A2724',
+                borderColor: taskResult.winner === ea.name ? '#4CAF50' : '#48423B',
+                color: '#FAF7F2',
+              }}
+            >
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6">{ea.name}</Typography>
+                {taskResult.winner === ea.name && (
+                  <Chip label="Winner" size="small" color="success" sx={{ fontWeight: 700 }} />
+                )}
+              </Stack>
+              <Typography variant="h4" sx={{ my: 1, fontWeight: 700 }}>
+                {ea.value.toLocaleString()}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>
+                {ea.record_count} records in dataset
+              </Typography>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Card
+              variant="outlined"
+              sx={{
+                p: 2,
+                bgcolor: taskResult.winner === eb.name ? 'rgba(76, 175, 80, 0.08)' : '#2A2724',
+                borderColor: taskResult.winner === eb.name ? '#4CAF50' : '#48423B',
+                color: '#FAF7F2',
+              }}
+            >
+              <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6">{eb.name}</Typography>
+                {taskResult.winner === eb.name && (
+                  <Chip label="Winner" size="small" color="success" sx={{ fontWeight: 700 }} />
+                )}
+              </Stack>
+              <Typography variant="h4" sx={{ my: 1, fontWeight: 700 }}>
+                {eb.value.toLocaleString()}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>
+                {eb.record_count} records in dataset
+              </Typography>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
+
+  if (task === 'root_cause' && taskResult.primary_driver) {
+    const driver = taskResult.primary_driver;
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#FAF7F2' }}>
+          Root Cause & Variance Decomposition
+        </Typography>
+        <Card variant="outlined" sx={{ bgcolor: '#2A2724', borderColor: '#48423B', p: 2, color: '#FAF7F2' }}>
+          <Typography variant="subtitle2" sx={{ color: '#FFA726', fontWeight: 700 }}>
+            PRIMARY DRIVER: {driver.dimension}
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 1 }}>
+            Underperforming category <strong>"{driver.underperforming_category}"</strong> averaged{' '}
+            {driver.underperforming_mean.toLocaleString()} versus top performer{' '}
+            <strong>"{driver.top_performing_category}"</strong> at {driver.top_performing_mean.toLocaleString()}.
+          </Typography>
+          <Chip
+            label={`Variance Impact Score: ${driver.variance_impact_score}%`}
+            size="small"
+            color="warning"
+            sx={{ mt: 1.5, fontWeight: 700 }}
+          />
+        </Card>
+      </Box>
+    );
+  }
+
+  if (task === 'trend') {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#FAF7F2' }}>
+          Time-Series Trajectory: {taskResult.trajectory} ({taskResult.overall_growth_pct}%)
+        </Typography>
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          {taskResult.peak_period && (
+            <Chip
+              label={`Peak: ${taskResult.peak_period.period} (${taskResult.peak_period.value.toLocaleString()})`}
+              color="success"
+              variant="outlined"
+            />
+          )}
+          {taskResult.trough_period && (
+            <Chip
+              label={`Trough: ${taskResult.trough_period.period} (${taskResult.trough_period.value.toLocaleString()})`}
+              color="error"
+              variant="outlined"
+            />
+          )}
+        </Stack>
+      </Box>
+    );
+  }
+
+  if (task === 'distribution' && taskResult.mean !== undefined && taskResult.median !== undefined) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5, color: '#FAF7F2' }}>
+          Statistical Distribution Overview
+        </Typography>
+        <Grid container spacing={1.5}>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Card variant="outlined" sx={{ p: 1.5, bgcolor: '#2A2724', borderColor: '#48423B', color: '#FAF7F2' }}>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Mean</Typography>
+              <Typography variant="h6">{taskResult.mean.toLocaleString()}</Typography>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Card variant="outlined" sx={{ p: 1.5, bgcolor: '#2A2724', borderColor: '#48423B', color: '#FAF7F2' }}>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Median</Typography>
+              <Typography variant="h6">{taskResult.median.toLocaleString()}</Typography>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Card variant="outlined" sx={{ p: 1.5, bgcolor: '#2A2724', borderColor: '#48423B', color: '#FAF7F2' }}>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>IQR</Typography>
+              <Typography variant="h6">{(taskResult.iqr ?? 0).toLocaleString()}</Typography>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <Card variant="outlined" sx={{ p: 1.5, bgcolor: '#2A2724', borderColor: '#48423B', color: '#FAF7F2' }}>
+              <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Top 20% Pareto Share</Typography>
+              <Typography variant="h6">{taskResult.pareto_share_top_20pct}%</Typography>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
+
+  return null;
 }

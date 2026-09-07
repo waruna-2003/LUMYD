@@ -24,11 +24,20 @@ class RoutingInfo(BaseModel):
     escalated: bool
 
 
+class NarrativeResponse(BaseModel):
+    headline: str
+    narrative_text: str
+    key_takeaways: list[str] = Field(default_factory=list)
+    language_detected: str  # "english", "singlish", "sinhala"
+
+
 class QueryResponse(BaseModel):
     query_id: int
     structured_query: QueryStructure
     evidence_package: dict[str, Any]
     routing_info: Optional[RoutingInfo] = None
+    narrative: Optional[NarrativeResponse] = None
+    task_result: Optional[dict[str, Any]] = None
 
 
 class ResolveEscalationRequest(BaseModel):

@@ -17,3 +17,14 @@ class StorageService:
             buffer.write(file_content)
             
         return str(file_path)
+
+    @classmethod
+    def resolve_file_path(cls, storage_path: str) -> str:
+        """Resolves file path robustly even if repository root moved across directories."""
+        if os.path.exists(storage_path):
+            return storage_path
+        filename = os.path.basename(storage_path)
+        candidate = UPLOAD_DIR / filename
+        if candidate.exists():
+            return str(candidate)
+        return storage_path
