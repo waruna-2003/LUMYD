@@ -139,7 +139,11 @@ def process_business_query(
                     target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
                     dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
                 ),
-                evidence_package={"result": sandbox_res["result"], "code": cached_solution["python_code"]},
+                evidence_package={
+                    "result": sandbox_res["result"],
+                    "code": cached_solution["python_code"],
+                    "observations": [],
+                },
                 routing_info=RoutingInfo(
                     route="AUTOMATED_EXECUTION",
                     confidence=cached_solution.get("similarity", 0.95),
@@ -191,7 +195,11 @@ def process_business_query(
                 dataset_id=dataset_id,
                 query_text=raw_query,
                 structure={"intent": predefined_match["intent"], "source": "predefined"},
-                evidence_package={"result": sandbox_res["result"], "code": predefined_match["python_code"]},
+                evidence_package={
+                    "result": sandbox_res["result"],
+                    "code": predefined_match["python_code"],
+                    "observations": [],
+                },
             )
             db.add(query_record)
             db.commit()
@@ -204,7 +212,11 @@ def process_business_query(
                     target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
                     dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
                 ),
-                evidence_package={"result": sandbox_res["result"], "code": predefined_match["python_code"]},
+                evidence_package={
+                    "result": sandbox_res["result"],
+                    "code": predefined_match["python_code"],
+                    "observations": [],
+                },
                 routing_info=RoutingInfo(
                     route="AUTOMATED_EXECUTION",
                     confidence=0.99,
@@ -311,7 +323,11 @@ def process_business_query(
                 dataset_id=dataset_id,
                 query_text=raw_query,
                 structure={"intent": teacher_taught["intent_label"], "source": "gemini_teacher"},
-                evidence_package={"result": sandbox_res["result"], "code": teacher_taught["python_code"]},
+                evidence_package={
+                    "result": sandbox_res["result"],
+                    "code": teacher_taught["python_code"],
+                    "observations": [],
+                },
             )
             db.add(query_record)
             db.commit()
@@ -324,7 +340,11 @@ def process_business_query(
                     target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
                     dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
                 ),
-                evidence_package={"result": sandbox_res["result"], "code": teacher_taught["python_code"]},
+                evidence_package={
+                    "result": sandbox_res["result"],
+                    "code": teacher_taught["python_code"],
+                    "observations": [],
+                },
                 routing_info=RoutingInfo(
                     route="AUTOMATED_EXECUTION",
                     confidence=0.90,

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, Component, type ErrorInfo, type ReactNode } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -288,10 +288,54 @@ export function AnalystPanel({ datasets }: AnalystPanelProps) {
           </Alert>
         )}
 
-        {result && <AnalystResultView result={result} />}
+        {result && (
+          <ResultErrorBoundary>
+            <AnalystResultView result={result} />
+          </ResultErrorBoundary>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ResultErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('AnalystResultView render error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Alert severity="error" sx={{ mt: 3, bgcolor: 'rgba(211, 47, 47, 0.15)', color: '#FAF7F2' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Unable to render analytical view
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#E0D8D0' }}>
+            {this.state.error?.message || 'An unexpected rendering error occurred.'}
+          </Typography>
+        </Alert>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function AnalystResultView({ result }: { result: AnalystResult }) {
@@ -366,12 +410,17 @@ function AnalystResultView({ result }: { result: AnalystResult }) {
             variant="filled"
           />
         )}
-        <Chip label={`Query #${result.query_id}`} variant="outlined" sx={{ color: '#D9D2CA', borderColor: '#625B54' }} />
-        <Chip label={`Intent: ${result.structured_query.intent}`} color="primary" />
-        <Chip label={`Metric: ${result.structured_query.target_metric}`} color="secondary" />
-        {result.structured_query.dimensions.map((dimension) => (
-          <Chip key={dimension} label={`Dimension: ${dimension}`} />
-        ))}
+        <Chip label={`Query #${result.query_id ?? 0}`} variant="outlined" sx={{ color: '#D9D2CA', borderColor: '#625B54' }} />
+        {result.structured_query?.intent && (
+          <Chip label={`Intent: ${result.structured_query.intent}`} color="primary" />
+        )}
+        {result.structured_query?.target_metric && (
+          <Chip label={`Metric: ${result.structured_query.target_metric}`} color="secondary" />
+        )}
+        {Array.isArray(result.structured_query?.dimensions) &&
+          result.structured_query.dimensions.map((dimension) => (
+            <Chip key={dimension} label={`Dimension: ${dimension}`} />
+          ))}
       </Stack>
 
       {/* 2. Multilingual Executive Story Card */}
@@ -451,7 +500,7 @@ function AnalystResultView({ result }: { result: AnalystResult }) {
       {result.task_result && <TaskVisualizer taskResult={result.task_result} />}
 
       {/* 6. Statistical Evidence Breakdown */}
-      {result.evidence_package.observations.length > 0 && (
+      {Array.isArray(result.evidence_package?.observations) && result.evidence_package.observations.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Statistical Evidence Points ({result.evidence_package.observations.length} observed)
