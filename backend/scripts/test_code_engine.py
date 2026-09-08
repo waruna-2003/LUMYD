@@ -151,6 +151,18 @@ def run_code_engine_tests():
     print(f"  Distillation Dataset Lines: {stats['distillation_dataset_lines']}")
     print("  [PASS] Distillation statistics endpoint confirmed.")
 
+    # -------------------------------------------------------------
+    # TEST 7: Local SLM Readiness & Status Endpoint
+    # -------------------------------------------------------------
+    print("\n[TEST 7] Testing Local SLM Status & Offline Integration Endpoint...")
+    slm_resp = client.get("/api/v1/analyst/slm/status")
+    assert slm_resp.status_code == 200, f"SLM status endpoint failed: {slm_resp.text}"
+    slm_status = slm_resp.json()
+    print(f"  SLM Status: {slm_status['status']}")
+    print(f"  Model Exists: {slm_status['model_exists']}")
+    print(f"  Runtime: {slm_status['runtime_type']}")
+    print("  [PASS] Local SLM status endpoint verified.")
+
     print("\n" + "=" * 70)
     print("ALL CODE-GEN & DISTILLATION PIPELINE TESTS PASSED!")
     print("=" * 70)
