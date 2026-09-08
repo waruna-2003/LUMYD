@@ -1,0 +1,41 @@
+Employee_ID,Full_Name,Department,Job_Title,Base_Salary,Bonus,Performance_Rating,Years_Experience,Location,Hire_Date,Employment_Status
+EMP-101,Dilani Dissanayake,Engineering,Software Engineer,154848,30969.6,4.8,14,Colombo,2020-03-01,Active
+EMP-102,Nadeesha Dissanayake,Engineering,DevOps Specialist,152193,18263.16,4.2,10,Kandy,2017-08-13,Active
+EMP-103,Nadeesha Dissanayake,Engineering,Software Engineer,155246,31049.2,5.0,15,Remote - Sri Lanka,2021-12-17,Active
+EMP-104,Shanika Senanayake,Engineering,Senior Architect,210488,25258.56,4.2,15,Galle,2015-09-20,On Leave
+EMP-105,Shanika Senanayake,Engineering,DevOps Specialist,169976,20397.12,4.2,14,Kandy,2016-05-25,Active
+EMP-106,Pathum Wickramasinghe,Engineering,DevOps Specialist,157419,18890.28,4.0,11,Galle,2019-04-09,Active
+EMP-107,Nadeesha Rathnayake,Engineering,Software Engineer,125971,6298.55,3.5,3,Remote - Sri Lanka,2020-02-14,Active
+EMP-108,Nadeesha Karunaratne,Engineering,DevOps Specialist,144520,7226.0,3.5,7,Remote - Sri Lanka,2023-10-13,Active
+EMP-109,Nadeesha Dissanayake,Marketing,SEO Specialist,79889,15977.8,5.0,5,Remote - Sri Lanka,2016-04-09,On Leave
+EMP-110,Nadeesha Rathnayake,Marketing,Content Strategist,89007,17801.4,4.8,7,Singapore,2016-03-20,Active
+EMP-111,Nadeesha Rathnayake,Marketing,SEO Specialist,86444,4322.2,3.0,10,Galle,2016-03-02,On Leave
+EMP-112,Suranga Karunaratne,Marketing,SEO Specialist,78449,9413.88,4.0,4,Colombo,2019-07-09,On Leave
+EMP-113,Suranga Dissanayake,Marketing,Content Strategist,104837,5241.85,3.0,12,Colombo,2022-11-02,Active
+EMP-114,Shanika Dissanayake,Marketing,Content Strategist,101333,20266.6,4.5,14,Colombo,2021-08-22,Active
+EMP-115,Suranga Rathnayake,Marketing,SEO Specialist,95198,19039.6,5.0,12,Colombo,2022-03-10,Active
+EMP-116,Bhanuka Wickramasinghe,Marketing,SEO Specialist,92149,11057.88,4.2,10,Galle,2020-02-23,Active
+EMP-117,Sachini Karunaratne,Sales,BDR Specialist,84172,10100.64,4.0,13,Galle,2018-02-17,Active
+EMP-118,Nadeesha Gunaratne,Sales,Sales Director,189031,9451.55,3.0,14,Remote - Sri Lanka,2016-12-05,Active
+EMP-119,Sachini Senanayake,Sales,BDR Specialist,77925,15585.0,4.5,9,Singapore,2016-07-27,Active
+EMP-120,Thisara Jayawardena,Sales,Sales Director,185022,37004.4,5.0,14,Remote - Sri Lanka,2016-04-25,On Leave
+EMP-121,Suranga Rathnayake,Sales,Sales Director,156598,31319.6,5.0,1,Galle,2016-04-12,Active
+EMP-122,Kavinda Dissanayake,Sales,Sales Director,188026,37605.2,4.5,15,Remote - Sri Lanka,2022-04-24,On Leave
+EMP-123,Pathum Senanayake,Sales,BDR Specialist,87437,17487.4,4.8,13,Galle,2016-01-03,Active
+EMP-124,Mahesh Gunaratne,Sales,Sales Director,179986,21598.32,4.0,12,Galle,2016-09-17,On Leave
+EMP-125,Pathum Jayawardena,Human Resources,HR Director,158919,19070.28,4.0,9,Colombo,2019-05-08,Active
+EMP-126,Shanika Dissanayake,Human Resources,Talent Recruiter,81779,16355.8,5.0,2,Galle,2020-12-16,Active
+EMP-127,Bhanuka Gunaratne,Human Resources,HR Generalist,99180,11901.6,4.0,14,Singapore,2021-05-01,Active
+EMP-128,Dilani Rathnayake,Human Resources,Talent Recruiter,71393,14278.6,4.5,1,Colombo,2016-02-28,Active
+EMP-129,Shanika Bandara,Human Resources,Talent Recruiter,95216,11425.92,4.0,8,Colombo,2019-08-04,On Leave
+EMP-130,Shanika Jayawardena,Human Resources,Talent Recruiter,73878,3693.9,3.5,2,Singapore,2022-04-04,On Leave
+EMP-131,Sachini Karunaratne,Human Resources,HR Director,159697,31939.4,5.0,10,Singapore,2016-08-10,On Leave
+EMP-132,Thisara Dissanayake,Human Resources,Talent Recruiter,93986,18797.2,4.5,10,Colombo,2020-05-22,Active
+EMP-133,Kavinda Karunaratne,Finance,Financial Analyst,89729,4486.45,3.5,3,Remote - Sri Lanka,2016-12-20,Active
+EMP-134,Dilani Senanayake,Finance,Financial Analyst,95720,19144.0,4.8,4,Galle,2022-11-08,Active
+EMP-135,Shanika Jayawardena,Finance,Accountant,84922,4246.1,3.5,2,Kandy,2021-02-02,Active
+EMP-136,Thisara Senanayake,Finance,Finance Manager,170728,20487.36,4.2,12,Galle,2019-12-13,On Leave
+EMP-137,Suranga Jayawardena,Finance,Accountant,76653,9198.36,4.2,2,Singapore,2023-02-08,Active
+EMP-138,Kavinda Rathnayake,Finance,Finance Manager,175415,35083.0,4.5,14,Remote - Sri Lanka,2016-09-21,Active
+EMP-139,Pathum Wickramasinghe,Finance,Financial Analyst,113141,22628.2,4.8,10,Galle,2016-06-14,Active
+EMP-140,Nadeesha Senanayake,Finance,Finance Manager,143634,17236.08,4.0,2,Singapore,2019-11-13,Active

@@ -51,3 +51,10 @@ Thumbs.db
 # Docker
 # ==========================
 docker-data/
+
+# ==========================
+# Large Model Weights (GGUF)
+# ==========================
+*.gguf
+backend/models/*.gguf
+!backend/models/README.md

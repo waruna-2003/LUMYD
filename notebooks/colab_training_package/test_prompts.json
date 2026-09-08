@@ -1,0 +1,58 @@
+[
+  {
+    "domain": "Retail",
+    "columns": [
+      "Transaction_ID",
+      "Date",
+      "Product_Category",
+      "Product_Name",
+      "Sales_Amount",
+      "Quantity",
+      "Profit"
+    ],
+    "query": "machan aduma profit ekak labuna item eka mokakda",
+    "language": "singlish",
+    "expected_operation": "df.groupby('Product_Name')['Profit'].sum().idxmin()"
+  },
+  {
+    "domain": "HR",
+    "columns": [
+      "Employee_ID",
+      "Full_Name",
+      "Department",
+      "Base_Salary",
+      "Bonus",
+      "Years_Experience"
+    ],
+    "query": "What is the average bonus in the Engineering department?",
+    "language": "english",
+    "expected_operation": "df[df['Department'] == 'Engineering']['Bonus'].mean()"
+  },
+  {
+    "domain": "Finance",
+    "columns": [
+      "Expense_ID",
+      "Transaction_Date",
+      "Category",
+      "Vendor",
+      "Amount",
+      "Approval_Status"
+    ],
+    "query": "තවමත් අනුමත නොවූ වියදම් වල එකතුව කීයද?",
+    "language": "sinhala",
+    "expected_operation": "df[df['Approval_Status'] == 'Pending']['Amount'].sum()"
+  },
+  {
+    "domain": "Inventory",
+    "columns": [
+      "SKU_Code",
+      "Item_Description",
+      "Product_Line",
+      "Stock_Quantity",
+      "Unit_Cost"
+    ],
+    "query": "mcn total inventory value eka calculate karala denna",
+    "language": "singlish",
+    "expected_operation": "(df['Stock_Quantity'] * df['Unit_Cost']).sum()"
+  }
+]

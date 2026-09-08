@@ -1,0 +1,51 @@
+Expense_ID,Transaction_Date,Category,Vendor,Department,Amount,Payment_Type,Quarter,Approval_Status,Project_Code
+EXP-2001,2024-06-04,Hardware Equipment,Dell Technologies Enterprise,IT Support,1548.88,ACH Invoice,Q3-2024,Pending,PRJ-108
+EXP-2002,2024-10-25,Consulting & Legal,Deloitte Advisory,Executive,1049.51,ACH Invoice,Q3-2024,Pending,PRJ-101
+EXP-2003,2024-05-15,Marketing & Ads,LinkedIn Talent & Ads,Marketing,4189.08,Corporate Card,Q2-2024,Pending,PRJ-104
+EXP-2004,2024-09-14,Marketing & Ads,Google Ads Network,Marketing,4833.56,Corporate Card,Q1-2024,Approved,PRJ-108
+EXP-2005,2024-08-23,Software Licenses,JetBrains & GitHub,Engineering,9803.72,ACH Invoice,Q2-2024,Approved,PRJ-107
+EXP-2006,2024-08-18,Hardware Equipment,Dell Technologies Enterprise,IT Support,14708.61,Wire Transfer,Q2-2024,Approved,PRJ-103
+EXP-2007,2024-06-26,Software Licenses,JetBrains & GitHub,Engineering,4324.65,Wire Transfer,Q4-2024,Rejected,PRJ-105
+EXP-2008,2024-03-15,Travel & Lodging,SriLankan Airlines Corporate,Sales,12602.77,Wire Transfer,Q4-2024,Rejected,PRJ-106
+EXP-2009,2024-04-23,Consulting & Legal,Deloitte Advisory,Executive,6966.33,ACH Invoice,Q3-2024,Approved,PRJ-104
+EXP-2010,2024-12-26,Consulting & Legal,Deloitte Advisory,Finance,893.8,Wire Transfer,Q4-2024,Pending,PRJ-108
+EXP-2011,2024-02-28,Cloud Infrastructure,AWS Cloud Services,DevOps,2112.13,Corporate Card,Q3-2024,Pending,PRJ-101
+EXP-2012,2024-02-16,Marketing & Ads,Google Ads Network,Marketing,6297.18,Wire Transfer,Q2-2024,Approved,PRJ-102
+EXP-2013,2024-06-21,Office Supplies,Stationery & Consumables Co,Admin,12822.03,ACH Invoice,Q4-2024,Pending,PRJ-102
+EXP-2014,2024-04-24,Marketing & Ads,LinkedIn Talent & Ads,Marketing,9559.62,Wire Transfer,Q3-2024,Approved,PRJ-102
+EXP-2015,2024-01-02,Hardware Equipment,Dell Technologies Enterprise,Engineering,2703.88,Corporate Card,Q3-2024,Approved,PRJ-106
+EXP-2016,2024-09-14,Office Supplies,Stationery & Consumables Co,Admin,6602.63,ACH Invoice,Q2-2024,Rejected,PRJ-103
+EXP-2017,2024-10-22,Marketing & Ads,Google Ads Network,Marketing,1414.78,Wire Transfer,Q4-2024,Approved,PRJ-104
+EXP-2018,2024-05-22,Hardware Equipment,Dell Technologies Enterprise,Engineering,9659.09,Wire Transfer,Q4-2024,Approved,PRJ-103
+EXP-2019,2024-10-10,Software Licenses,JetBrains & GitHub,Engineering,6765.51,ACH Invoice,Q3-2024,Pending,PRJ-108
+EXP-2020,2024-08-04,Travel & Lodging,SriLankan Airlines Corporate,Sales,3188.45,Wire Transfer,Q4-2024,Approved,PRJ-105
+EXP-2021,2024-05-01,Travel & Lodging,SriLankan Airlines Corporate,Executive,573.61,ACH Invoice,Q4-2024,Rejected,PRJ-108
+EXP-2022,2024-10-26,Travel & Lodging,SriLankan Airlines Corporate,Executive,11692.18,Corporate Card,Q2-2024,Approved,PRJ-105
+EXP-2023,2024-05-26,Marketing & Ads,Google Ads Network,Marketing,9516.66,Corporate Card,Q1-2024,Pending,PRJ-103
+EXP-2024,2024-12-14,Software Licenses,JetBrains & GitHub,Engineering,13667.01,Corporate Card,Q3-2024,Approved,PRJ-106
+EXP-2025,2024-08-26,Travel & Lodging,SriLankan Airlines Corporate,Sales,12499.47,ACH Invoice,Q3-2024,Approved,PRJ-102
+EXP-2026,2024-04-28,Hardware Equipment,Dell Technologies Enterprise,Engineering,14452.68,ACH Invoice,Q2-2024,Pending,PRJ-102
+EXP-2027,2024-08-12,Consulting & Legal,Deloitte Advisory,Executive,455.3,ACH Invoice,Q1-2024,Approved,PRJ-106
+EXP-2028,2024-01-20,Software Licenses,JetBrains & GitHub,Engineering,10203.84,Wire Transfer,Q4-2024,Rejected,PRJ-102
+EXP-2029,2024-11-14,Hardware Equipment,Dell Technologies Enterprise,IT Support,13663.47,Corporate Card,Q3-2024,Approved,PRJ-101
+EXP-2030,2024-02-08,Travel & Lodging,SriLankan Airlines Corporate,Sales,14939.93,Corporate Card,Q1-2024,Rejected,PRJ-108
+EXP-2031,2024-10-24,Office Supplies,Stationery & Consumables Co,Admin,10139.67,Wire Transfer,Q4-2024,Approved,PRJ-108
+EXP-2032,2024-01-23,Consulting & Legal,Deloitte Advisory,Executive,14101.03,Corporate Card,Q3-2024,Approved,PRJ-108
+EXP-2033,2024-11-12,Marketing & Ads,LinkedIn Talent & Ads,HR,12867.89,ACH Invoice,Q1-2024,Rejected,PRJ-101
+EXP-2034,2024-08-03,Consulting & Legal,Deloitte Advisory,Finance,4319.25,ACH Invoice,Q1-2024,Approved,PRJ-101
+EXP-2035,2024-10-07,Office Supplies,Stationery & Consumables Co,Admin,3842.64,ACH Invoice,Q2-2024,Approved,PRJ-104
+EXP-2036,2024-10-01,Marketing & Ads,LinkedIn Talent & Ads,Marketing,5096.25,Corporate Card,Q2-2024,Approved,PRJ-105
+EXP-2037,2024-03-01,Marketing & Ads,Google Ads Network,Marketing,1871.41,Corporate Card,Q1-2024,Approved,PRJ-101
+EXP-2038,2024-12-14,Marketing & Ads,Google Ads Network,Marketing,4164.17,Corporate Card,Q2-2024,Rejected,PRJ-108
+EXP-2039,2024-08-17,Hardware Equipment,Dell Technologies Enterprise,IT Support,11725.75,ACH Invoice,Q1-2024,Approved,PRJ-105
+EXP-2040,2024-01-16,Hardware Equipment,Dell Technologies Enterprise,IT Support,9739.28,Wire Transfer,Q1-2024,Pending,PRJ-108
+EXP-2041,2024-06-20,Hardware Equipment,Dell Technologies Enterprise,IT Support,1333.99,Corporate Card,Q1-2024,Approved,PRJ-105
+EXP-2042,2024-08-17,Office Supplies,Stationery & Consumables Co,Admin,5868.34,Wire Transfer,Q3-2024,Rejected,PRJ-102
+EXP-2043,2024-07-11,Marketing & Ads,LinkedIn Talent & Ads,HR,6593.53,Wire Transfer,Q2-2024,Pending,PRJ-102
+EXP-2044,2024-06-05,Office Supplies,Stationery & Consumables Co,Admin,6544.77,Corporate Card,Q3-2024,Pending,PRJ-102
+EXP-2045,2024-03-18,Software Licenses,JetBrains & GitHub,Engineering,6620.18,ACH Invoice,Q3-2024,Approved,PRJ-102
+EXP-2046,2024-12-02,Consulting & Legal,Deloitte Advisory,Executive,5465.57,ACH Invoice,Q4-2024,Approved,PRJ-106
+EXP-2047,2024-03-22,Software Licenses,JetBrains & GitHub,Engineering,8774.3,Corporate Card,Q2-2024,Pending,PRJ-106
+EXP-2048,2024-10-08,Office Supplies,Stationery & Consumables Co,Admin,1944.56,ACH Invoice,Q3-2024,Pending,PRJ-105
+EXP-2049,2024-06-12,Cloud Infrastructure,AWS Cloud Services,Engineering,2911.14,Corporate Card,Q3-2024,Approved,PRJ-107
+EXP-2050,2024-02-24,Software Licenses,JetBrains & GitHub,Engineering,2342.65,Corporate Card,Q1-2024,Rejected,PRJ-107

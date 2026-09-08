@@ -1,0 +1,42 @@
+{
+  "total_records": 310,
+  "languages": {
+    "english": 106,
+    "singlish": 150,
+    "sinhala": 54
+  },
+  "intents": {
+    "extremum_analysis": 68,
+    "overall_aggregation": 29,
+    "product_sales_summary": 1,
+    "sales_by_product": 1,
+    "entity_lookup": 13,
+    "filtered_aggregation": 39,
+    "entity_count": 21,
+    "anomaly_detection": 3,
+    "comparison": 3,
+    "threshold_filter": 30,
+    "group_aggregation": 30,
+    "top_k_ranking": 12,
+    "record_count": 3,
+    "unique_values": 6,
+    "derived_metric": 24,
+    "data_quality": 3,
+    "filter_list": 3,
+    "compound_filter": 9,
+    "unique_count": 3,
+    "filter_records": 3,
+    "comparison_filter": 3,
+    "filter_unique": 3
+  },
+  "sources": {
+    "predefined": 8,
+    "gemini_teacher": 2,
+    "verified_synthetic": 300
+  },
+  "chatml_file": "lumyd_chatml_train.jsonl",
+  "alpaca_file": "lumyd_alpaca_train.jsonl",
+  "recommended_model": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+  "recommended_quantization": "4bit (QLoRA)",
+  "target_gguf": "lumyd-coder-slm-q4_k_m.gguf"
+}

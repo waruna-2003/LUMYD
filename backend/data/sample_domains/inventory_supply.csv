@@ -1,0 +1,41 @@
+SKU_Code,Item_Description,Product_Line,Warehouse_Location,Stock_Quantity,Reorder_Point,Unit_Cost,Lead_Time_Days,Supplier_Name,Stock_Status
+SKU-8001,ESP32-WROOM-32D Module,Microcontrollers & ICs,Biyagama Free Zone,949,187,2.45,17,Apex Semis Ltd,Overstocked
+SKU-8002,STM32F401 Microcontroller,Microcontrollers & ICs,Colombo North Hub,684,298,4.8,19,Global IC Distro,Normal
+SKU-8003,Step-Down Buck Converter 5V,Power Management,Colombo North Hub,342,293,1.2,6,Apex Semis Ltd,Normal
+SKU-8004,Lithium Ion Battery 18650 3000mAh,Power Management,Changi Regional Hub,927,269,3.75,15,Pacific Component Supply,Overstocked
+SKU-8005,OLED 0.96 inch I2C Display,Display & Modules,Biyagama Free Zone,868,169,2.1,11,Apex Semis Ltd,Overstocked
+SKU-8006,TFT LCD Touchscreen 3.5 inch,Display & Modules,Katuwana Logistic Park,900,128,11.5,23,Apex Semis Ltd,Overstocked
+SKU-8007,BME280 Environmental Sensor,Sensors & Transducers,Changi Regional Hub,113,156,3.2,8,Sunway Electronics,Critical Low
+SKU-8008,Ultrasonic Distance Sensor HC-SR04,Sensors & Transducers,Biyagama Free Zone,438,177,0.95,5,Apex Semis Ltd,Normal
+SKU-8009,Precision Resistor Kit 1/4W,Passive Components,Colombo North Hub,612,183,8.5,2,Pacific Component Supply,Overstocked
+SKU-8010,Ceramic Capacitor Assortment,Passive Components,Biyagama Free Zone,901,144,7.2,8,Global IC Distro,Overstocked
+SKU-8011,ESP32-WROOM-32D Module,Microcontrollers & ICs,Katuwana Logistic Park,1044,243,2.45,13,Pacific Component Supply,Overstocked
+SKU-8012,STM32F401 Microcontroller,Microcontrollers & ICs,Colombo North Hub,106,211,4.8,26,Sunway Electronics,Critical Low
+SKU-8013,Step-Down Buck Converter 5V,Power Management,Changi Regional Hub,661,247,1.2,11,Pacific Component Supply,Normal
+SKU-8014,Lithium Ion Battery 18650 3000mAh,Power Management,Changi Regional Hub,612,129,3.75,8,Apex Semis Ltd,Overstocked
+SKU-8015,OLED 0.96 inch I2C Display,Display & Modules,Changi Regional Hub,371,258,2.1,15,Sunway Electronics,Normal
+SKU-8016,TFT LCD Touchscreen 3.5 inch,Display & Modules,Biyagama Free Zone,914,127,11.5,22,Pacific Component Supply,Overstocked
+SKU-8017,BME280 Environmental Sensor,Sensors & Transducers,Changi Regional Hub,1093,120,3.2,12,Apex Semis Ltd,Overstocked
+SKU-8018,Ultrasonic Distance Sensor HC-SR04,Sensors & Transducers,Biyagama Free Zone,473,185,0.95,4,Sunway Electronics,Normal
+SKU-8019,Precision Resistor Kit 1/4W,Passive Components,Biyagama Free Zone,1106,230,8.5,7,Apex Semis Ltd,Overstocked
+SKU-8020,Ceramic Capacitor Assortment,Passive Components,Colombo North Hub,322,160,7.2,4,Apex Semis Ltd,Normal
+SKU-8021,ESP32-WROOM-32D Module,Microcontrollers & ICs,Biyagama Free Zone,424,144,2.45,13,Global IC Distro,Normal
+SKU-8022,STM32F401 Microcontroller,Microcontrollers & ICs,Changi Regional Hub,1031,218,4.8,24,Apex Semis Ltd,Overstocked
+SKU-8023,Step-Down Buck Converter 5V,Power Management,Colombo North Hub,329,212,1.2,12,Pacific Component Supply,Normal
+SKU-8024,Lithium Ion Battery 18650 3000mAh,Power Management,Colombo North Hub,640,170,3.75,13,Sunway Electronics,Overstocked
+SKU-8025,OLED 0.96 inch I2C Display,Display & Modules,Changi Regional Hub,655,218,2.1,10,Sunway Electronics,Overstocked
+SKU-8026,TFT LCD Touchscreen 3.5 inch,Display & Modules,Colombo North Hub,775,173,11.5,17,Pacific Component Supply,Overstocked
+SKU-8027,BME280 Environmental Sensor,Sensors & Transducers,Colombo North Hub,967,248,3.2,15,Global IC Distro,Overstocked
+SKU-8028,Ultrasonic Distance Sensor HC-SR04,Sensors & Transducers,Changi Regional Hub,678,254,0.95,5,Sunway Electronics,Normal
+SKU-8029,Precision Resistor Kit 1/4W,Passive Components,Katuwana Logistic Park,942,126,8.5,3,Global IC Distro,Overstocked
+SKU-8030,Ceramic Capacitor Assortment,Passive Components,Changi Regional Hub,100,163,7.2,9,Global IC Distro,Critical Low
+SKU-8031,ESP32-WROOM-32D Module,Microcontrollers & ICs,Katuwana Logistic Park,765,195,2.45,18,Pacific Component Supply,Overstocked
+SKU-8032,STM32F401 Microcontroller,Microcontrollers & ICs,Colombo North Hub,712,273,4.8,24,Sunway Electronics,Normal
+SKU-8033,Step-Down Buck Converter 5V,Power Management,Changi Regional Hub,695,124,1.2,9,Apex Semis Ltd,Overstocked
+SKU-8034,Lithium Ion Battery 18650 3000mAh,Power Management,Colombo North Hub,327,185,3.75,10,Apex Semis Ltd,Normal
+SKU-8035,OLED 0.96 inch I2C Display,Display & Modules,Changi Regional Hub,655,267,2.1,12,Sunway Electronics,Normal
+SKU-8036,TFT LCD Touchscreen 3.5 inch,Display & Modules,Changi Regional Hub,654,243,11.5,21,Global IC Distro,Normal
+SKU-8037,BME280 Environmental Sensor,Sensors & Transducers,Changi Regional Hub,1098,123,3.2,13,Sunway Electronics,Overstocked
+SKU-8038,Ultrasonic Distance Sensor HC-SR04,Sensors & Transducers,Biyagama Free Zone,762,179,0.95,6,Apex Semis Ltd,Overstocked
+SKU-8039,Precision Resistor Kit 1/4W,Passive Components,Biyagama Free Zone,1015,149,8.5,4,Global IC Distro,Overstocked
+SKU-8040,Ceramic Capacitor Assortment,Passive Components,Colombo North Hub,178,175,7.2,2,Apex Semis Ltd,Normal
