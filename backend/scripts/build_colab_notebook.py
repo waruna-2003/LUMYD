@@ -59,9 +59,9 @@ In this notebook, you will fine-tune an ultra-fast, offline Small Language Model
     cells.append(create_cell("code", """# Check GPU availability
 !nvidia-smi
 
-# Install Unsloth & modern training dependencies (No xformers compile needed)
+# Install Unsloth & companion zoo (No xformers compile needed)
 !pip install --no-deps "unsloth @ git+https://github.com/unslothai/unsloth.git"
-!pip install trl peft accelerate bitsandbytes datasets"""))
+!pip install unsloth_zoo trl peft accelerate bitsandbytes datasets"""))
 
     # Cell 3: Load Base Model & Tokenizer
     cells.append(create_cell("code", """from unsloth import FastLanguageModel
