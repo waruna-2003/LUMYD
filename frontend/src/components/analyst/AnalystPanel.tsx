@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -9,6 +12,7 @@ import {
   CircularProgress,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   LinearProgress,
   MenuItem,
@@ -22,14 +26,20 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
 import { datasetService } from '../../services/api';
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
+import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HourglassTopOutlinedIcon from '@mui/icons-material/HourglassTopOutlined';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import TranslateOutlinedIcon from '@mui/icons-material/TranslateOutlined';
 
 interface DatasetOption {
@@ -51,7 +61,7 @@ interface EvidenceObservation {
 export interface RoutingInfo {
   route: 'AUTOMATED_EXECUTION' | 'HUMAN_ESCALATION';
   confidence: number;
-  resolved_by: 'local_router' | 'gemini_triage' | 'pending_triage';
+  resolved_by: string;
   escalated: boolean;
 }
 
@@ -128,6 +138,17 @@ export interface TaskResultData {
   pareto_share_top_20pct?: number;
 }
 
+export interface CodeResultPayload {
+  type: string;
+  value?: unknown;
+  formatted?: string;
+  total_rows?: number;
+  columns?: string[];
+  rows?: Record<string, unknown>[];
+  name?: string;
+  items?: { key: string; value: unknown }[];
+}
+
 export interface AnalystResult {
   query_id: number;
   structured_query: {
@@ -145,6 +166,11 @@ export interface AnalystResult {
   routing_info?: RoutingInfo;
   narrative?: NarrativeResponse;
   task_result?: TaskResultData;
+  generated_code?: string;
+  code_source?: 'predefined' | 'knowledge_bank' | 'gemini_teacher';
+  code_result?: CodeResultPayload;
+  human_explanation?: string;
+  execution_time_ms?: number;
 }
 
 interface AnalystPanelProps {
@@ -181,71 +207,95 @@ export function AnalystPanel({ datasets }: AnalystPanelProps) {
   };
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 4 }, my: 3, bgcolor: '#282522', color: '#FAF7F2', borderColor: '#282522' }}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
-        <Box sx={{ width: 34, height: 34, borderRadius: 2, bgcolor: 'primary.main', display: 'grid', placeItems: 'center' }}>
-          <AutoAwesomeOutlinedIcon fontSize="small" />
-        </Box>
-        <Typography variant="h5">Ask LUMYD</Typography>
-      </Stack>
-      <Typography sx={{ mb: 3, color: '#BEB6AD', maxWidth: 650 }}>
-        Ask a focused business question. LUMYD will retrieve and rank the strongest evidence in your data.
-      </Typography>
+    <Card sx={{ mt: 3, bgcolor: '#24211E', border: '1px solid #48433E', color: '#FAF7F2' }}>
+      <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+        <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
+          LUMYD Code-Gen AI Analyst
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#BEB6AD', mb: 3 }}>
+          Ask any question in English, Singlish, or Sinhala. LUMYD understands your intent, executes Python code,
+          learns new skills from Gemini, and explains answers clearly.
+        </Typography>
 
-      {availableDatasets.length === 0 ? (
-        <Alert severity="info">Upload and process a dataset before asking questions.</Alert>
-      ) : (
-        <Box component="form" onSubmit={submitQuestion}>
-          <Stack spacing={2}>
-            <FormControl fullWidth sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#FCFAF6' } }}>
-              <InputLabel id="analyst-dataset-label">Dataset</InputLabel>
-              <Select
-                labelId="analyst-dataset-label"
-                value={activeDatasetId}
-                label="Dataset"
-                onChange={(event) => {
-                  setDatasetId(event.target.value);
-                  setResult(null);
+        {availableDatasets.length === 0 ? (
+          <Alert severity="info" sx={{ bgcolor: 'rgba(2, 136, 209, 0.12)', color: '#FAF7F2' }}>
+            No processed datasets found. Upload a dataset first to start querying.
+          </Alert>
+        ) : (
+          <Box component="form" onSubmit={submitQuestion}>
+            <Stack spacing={2.5}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="dataset-select-label" sx={{ color: '#BEB6AD' }}>
+                  Select Dataset
+                </InputLabel>
+                <Select
+                  labelId="dataset-select-label"
+                  value={activeDatasetId}
+                  label="Select Dataset"
+                  onChange={(event) => setDatasetId(event.target.value)}
+                  sx={{
+                    color: '#FAF7F2',
+                    bgcolor: '#1E1C1A',
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#48433E' },
+                  }}
+                >
+                  {availableDatasets.map((dataset) => (
+                    <MenuItem key={dataset.id} value={dataset.id}>
+                      {dataset.filename}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                fullWidth
+                multiline
+                minRows={2}
+                maxRows={4}
+                label="Ask a business question"
+                placeholder="e.g. 'what is the most profitable product', 'sales adu une ai mcn', or 'Product_1 sales kiyada'"
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                sx={{
+                  bgcolor: '#1E1C1A',
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FAF7F2',
+                    '& fieldset': { borderColor: '#48433E' },
+                    '&:hover fieldset': { borderColor: 'primary.main' },
+                  },
+                  '& .MuiInputLabel-root': { color: '#BEB6AD' },
                 }}
-              >
-                {availableDatasets.map((dataset) => (
-                  <MenuItem key={dataset.id} value={dataset.id}>
-                    {dataset.filename}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Business question"
-              placeholder="What are the top regions by sales amount and why?"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              multiline
-              minRows={2}
-              fullWidth
-              sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#FCFAF6' } }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading || !activeDatasetId || !question.trim()}
-              sx={{ alignSelf: 'flex-start', minWidth: 160 }}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Analyze Question'}
-            </Button>
-          </Stack>
-        </Box>
-      )}
+              />
 
-      {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-      {result && <AnalystAnswer result={result} />}
-    </Paper>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={loading || !question.trim()}
+                  startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <BoltOutlinedIcon />}
+                  sx={{ px: 3, py: 1, fontWeight: 700 }}
+                >
+                  {loading ? 'Analyzing...' : 'Execute Analysis'}
+                </Button>
+              </Box>
+            </Stack>
+          </Box>
+        )}
+
+        {error && (
+          <Alert severity="error" sx={{ mt: 3, bgcolor: 'rgba(211, 47, 47, 0.15)', color: '#FAF7F2' }}>
+            {error}
+          </Alert>
+        )}
+
+        {result && <AnalystResultView result={result} />}
+      </CardContent>
+    </Card>
   );
 }
 
-function AnalystAnswer({ result }: { result: AnalystResult }) {
-  const isEscalated =
-    result.routing_info?.escalated || result.evidence_package?.status === 'ESCALATED';
+function AnalystResultView({ result }: { result: AnalystResult }) {
+  const isEscalated = result.routing_info?.escalated;
 
   if (isEscalated) {
     return (
@@ -266,7 +316,7 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
           <Typography variant="body2" sx={{ mt: 0.5, color: '#E0D8D0' }}>
             {result.narrative?.narrative_text ||
               result.evidence_package?.message ||
-              'This question was out of scope or below neural router confidence. It has been recorded for review.'}
+              'This question was out of scope or below confidence. It has been recorded for review.'}
           </Typography>
           {result.evidence_package?.escalation_id && (
             <Chip
@@ -282,21 +332,37 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
 
   return (
     <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid #48433E' }}>
-      {/* Routing Chips */}
+      {/* 1. Origin & Routing Chips */}
       <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
-        {result.routing_info?.resolved_by === 'local_router' && (
+        {result.code_source === 'predefined' && (
           <Chip
             icon={<BoltOutlinedIcon />}
-            label={`Local Router (${(result.routing_info.confidence * 100).toFixed(0)}% match · Zero Cost)`}
+            label={`⚡ Predefined Function (${result.execution_time_ms ?? 0}ms · Zero Cost)`}
             color="success"
             variant="filled"
           />
         )}
-        {result.routing_info?.resolved_by === 'gemini_triage' && (
+        {result.code_source === 'knowledge_bank' && (
           <Chip
-            icon={<AutoAwesomeOutlinedIcon />}
-            label="Gemini 3.6 Flash Fallback · Learned"
+            icon={<StorageOutlinedIcon />}
+            label={`💾 Reused from Knowledge Bank (${result.execution_time_ms ?? 0}ms · 0 API Cost)`}
+            color="success"
+            variant="filled"
+          />
+        )}
+        {result.code_source === 'gemini_teacher' && (
+          <Chip
+            icon={<SchoolOutlinedIcon />}
+            label={`🧑‍🏫 Learned from Gemini Teacher (${result.execution_time_ms ?? 0}ms · Added to SLM)`}
             color="secondary"
+            variant="filled"
+          />
+        )}
+        {result.routing_info?.resolved_by === 'local_router' && !result.code_source && (
+          <Chip
+            icon={<BoltOutlinedIcon />}
+            label={`Local Router (${(result.routing_info.confidence * 100).toFixed(0)}% match)`}
+            color="success"
             variant="filled"
           />
         )}
@@ -308,12 +374,12 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
         ))}
       </Stack>
 
-      {/* 1. Multilingual Human Narrative Card */}
+      {/* 2. Multilingual Executive Story Card */}
       {result.narrative && (
         <Card
           variant="outlined"
           sx={{
-            mb: 3.5,
+            mb: 3,
             bgcolor: '#1E1C1A',
             borderColor: '#5C544C',
             color: '#FAF7F2',
@@ -324,7 +390,7 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1.5 }}>
               <TranslateOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
               <Typography variant="overline" sx={{ fontWeight: 700, color: 'primary.light', letterSpacing: '0.08em' }}>
-                AI EXECUTIVE NARRATIVE · {result.narrative.language_detected.toUpperCase()}
+                AI EXECUTIVE ANSWER · {result.narrative.language_detected.toUpperCase()}
               </Typography>
             </Stack>
 
@@ -369,10 +435,22 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
         </Card>
       )}
 
-      {/* 2. Dedicated Analytical Task Visualizer */}
+      {/* 3. Dynamic Python Execution Result Viewer */}
+      {result.code_result && <DynamicResultViewer codeResult={result.code_result} />}
+
+      {/* 4. Executed Python Code Block (Expandable) */}
+      {result.generated_code && (
+        <PythonCodeBlock
+          code={result.generated_code}
+          source={result.code_source || 'predefined'}
+          executionTimeMs={result.execution_time_ms}
+        />
+      )}
+
+      {/* 5. Fixed Task Visualizer (if applicable) */}
       {result.task_result && <TaskVisualizer taskResult={result.task_result} />}
 
-      {/* 3. Deep Statistical Evidence Breakdown */}
+      {/* 6. Statistical Evidence Breakdown */}
       {result.evidence_package.observations.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -401,6 +479,214 @@ function AnalystAnswer({ result }: { result: AnalystResult }) {
         </Box>
       )}
     </Box>
+  );
+}
+
+function DynamicResultViewer({ codeResult }: { codeResult: CodeResultPayload }) {
+  if (codeResult.type === 'scalar') {
+    return (
+      <Card variant="outlined" sx={{ mb: 3, p: 2.5, bgcolor: '#24211E', borderColor: '#48423B', color: '#FAF7F2' }}>
+        <Typography variant="caption" sx={{ color: '#BEB6AD', textTransform: 'uppercase', fontWeight: 700 }}>
+          Computed Result
+        </Typography>
+        <Typography variant="h4" sx={{ mt: 1, fontWeight: 800, color: '#81C784' }}>
+          {codeResult.formatted ?? String(codeResult.value)}
+        </Typography>
+      </Card>
+    );
+  }
+
+  if (codeResult.type === 'dict' && codeResult.value && typeof codeResult.value === 'object') {
+    const entries = Object.entries(codeResult.value as Record<string, unknown>);
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1, textTransform: 'uppercase', fontWeight: 700 }}>
+          Calculated Metric Summary
+        </Typography>
+        <Grid container spacing={1.5}>
+          {entries.map(([key, val]) => (
+            <Grid key={key} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card variant="outlined" sx={{ p: 2, bgcolor: '#24211E', borderColor: '#48423B', color: '#FAF7F2' }}>
+                <Typography variant="caption" sx={{ color: '#BEB6AD', textTransform: 'capitalize' }}>
+                  {key.replace(/_/g, ' ')}
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 0.5, fontWeight: 700 }}>
+                  {typeof val === 'number' ? val.toLocaleString() : String(val)}
+                </Typography>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  }
+
+  if (codeResult.type === 'series' && codeResult.items) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1, textTransform: 'uppercase', fontWeight: 700 }}>
+          Calculated Breakdown: {codeResult.name || 'Series'}
+        </Typography>
+        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#24211E', borderColor: '#48423B' }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ '& th': { color: '#BEB6AD', borderColor: '#3D3833', fontWeight: 700 } }}>
+                <TableCell>Item</TableCell>
+                <TableCell align="right">Value</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {codeResult.items.map((it) => (
+                <TableRow key={it.key} sx={{ '& td': { color: '#FAF7F2', borderColor: '#332F2B' } }}>
+                  <TableCell sx={{ fontWeight: 600 }}>{it.key}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, color: '#81C784' }}>
+                    {typeof it.value === 'number' ? it.value.toLocaleString() : String(it.value)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    );
+  }
+
+  if (codeResult.type === 'dataframe' && codeResult.rows && codeResult.columns) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle2" sx={{ color: '#BEB6AD', mb: 1, textTransform: 'uppercase', fontWeight: 700 }}>
+          Result Table ({codeResult.total_rows} rows)
+        </Typography>
+        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#24211E', borderColor: '#48423B', maxHeight: 300 }}>
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow sx={{ '& th': { color: '#BEB6AD', bgcolor: '#1E1C1A', borderColor: '#3D3833', fontWeight: 700 } }}>
+                {codeResult.columns.map((col) => (
+                  <TableCell key={col}>{col}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {codeResult.rows.map((row, idx) => (
+                <TableRow key={idx} sx={{ '& td': { color: '#FAF7F2', borderColor: '#332F2B' } }}>
+                  {codeResult.columns!.map((col) => (
+                    <TableCell key={col}>{String(row[col] ?? '')}</TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    );
+  }
+
+  return null;
+}
+
+function PythonCodeBlock({
+  code,
+  source,
+  executionTimeMs,
+}: {
+  code: string;
+  source: string;
+  executionTimeMs?: number;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const sourceTitle =
+    source === 'gemini_teacher'
+      ? 'Taught by Gemini Master Teacher'
+      : source === 'knowledge_bank'
+      ? 'Reused from Local Knowledge Bank'
+      : 'Local Predefined Routine';
+
+  return (
+    <Accordion
+      defaultExpanded
+      sx={{
+        mb: 3,
+        bgcolor: '#1A1816',
+        border: '1px solid #3D3833',
+        color: '#FAF7F2',
+        '&:before': { display: 'none' },
+        borderRadius: '8px !important',
+      }}
+    >
+      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#BEB6AD' }} />}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <CodeOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            Executed Python Code (Pandas / NumPy)
+          </Typography>
+          <Chip
+            label={sourceTitle}
+            size="small"
+            sx={{
+              height: 20,
+              fontSize: '0.7rem',
+              bgcolor: source === 'gemini_teacher' ? 'rgba(186, 104, 200, 0.2)' : 'rgba(129, 199, 132, 0.2)',
+              color: source === 'gemini_teacher' ? '#CE93D8' : '#81C784',
+              borderColor: 'transparent',
+            }}
+          />
+          {executionTimeMs !== undefined && (
+            <Typography variant="caption" sx={{ color: '#BEB6AD' }}>
+              ({executionTimeMs}ms)
+            </Typography>
+          )}
+        </Stack>
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 0, px: 2, pb: 2 }}>
+        <Box
+          sx={{
+            position: 'relative',
+            p: 2,
+            bgcolor: '#121110',
+            borderRadius: 1.5,
+            border: '1px solid #2D2926',
+          }}
+        >
+          <Tooltip title={copied ? 'Copied!' : 'Copy Code'}>
+            <IconButton
+              size="small"
+              onClick={handleCopy}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                color: copied ? '#81C784' : '#BEB6AD',
+                bgcolor: '#24211E',
+                '&:hover': { bgcolor: '#332F2B' },
+              }}
+            >
+              {copied ? <CheckOutlinedIcon fontSize="small" /> : <ContentCopyOutlinedIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+          <Typography
+            component="pre"
+            sx={{
+              m: 0,
+              fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+              fontSize: '0.85rem',
+              color: '#A7F3D0',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              lineHeight: 1.5,
+            }}
+          >
+            {code}
+          </Typography>
+        </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 

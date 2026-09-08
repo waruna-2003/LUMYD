@@ -26,6 +26,8 @@ export const analystService = {
     admin_notes?: string;
   }) => api.post('/analyst/escalations/resolve', payload),
   fetchQuotaStatus: () => api.get('/analyst/quota/status'),
+  fetchDistillationStats: () => api.get('/analyst/distillation/stats'),
+  exportDistillationUrl: `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1'}/analyst/distillation/export`,
 };
 
 export default api;

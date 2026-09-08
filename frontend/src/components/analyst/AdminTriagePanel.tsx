@@ -21,7 +21,9 @@ import {
 } from '@mui/material';
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 
@@ -46,6 +48,16 @@ interface QuotaStatus {
   percentage_used: number;
 }
 
+interface DistillationStats {
+  total_knowledge_records: number;
+  verified_executable_solutions: number;
+  learned_from_gemini_teacher: number;
+  predefined_solutions: number;
+  distillation_dataset_lines: number;
+  distillation_file_bytes: number;
+  ready_for_slm_fine_tuning: boolean;
+}
+
 const ANALYTICAL_TASKS = [
   { value: 'root_cause', label: 'Root Cause Analysis (Why metrics changed / dropped / spiked)' },
   { value: 'ranking', label: 'Ranking / Top-K (Highest, lowest, best, worst)' },
@@ -61,6 +73,7 @@ interface AdminTriagePanelProps {
 export function AdminTriagePanel({ onEscalationCountChange }: AdminTriagePanelProps) {
   const [escalations, setEscalations] = useState<EscalationItem[]>([]);
   const [quota, setQuota] = useState<QuotaStatus | null>(null);
+  const [distillStats, setDistillStats] = useState<DistillationStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<Record<string, string>>({});
@@ -70,12 +83,14 @@ export function AdminTriagePanel({ onEscalationCountChange }: AdminTriagePanelPr
   const refreshData = async () => {
     setLoading(true);
     try {
-      const [escRes, quotaRes] = await Promise.all([
+      const [escRes, quotaRes, distillRes] = await Promise.all([
         analystService.fetchPendingEscalations(),
         analystService.fetchQuotaStatus(),
+        analystService.fetchDistillationStats(),
       ]);
       setEscalations(escRes.data);
       setQuota(quotaRes.data);
+      setDistillStats(distillRes.data);
       if (onEscalationCountChange) {
         onEscalationCountChange(escRes.data.length);
       }
@@ -91,11 +106,13 @@ export function AdminTriagePanel({ onEscalationCountChange }: AdminTriagePanelPr
     Promise.all([
       analystService.fetchPendingEscalations(),
       analystService.fetchQuotaStatus(),
+      analystService.fetchDistillationStats(),
     ])
-      .then(([escRes, quotaRes]) => {
+      .then(([escRes, quotaRes, distillRes]) => {
         if (!isMounted) return;
         setEscalations(escRes.data);
         setQuota(quotaRes.data);
+        setDistillStats(distillRes.data);
         if (onEscalationCountChange) {
           onEscalationCountChange(escRes.data.length);
         }
@@ -228,6 +245,76 @@ export function AdminTriagePanel({ onEscalationCountChange }: AdminTriagePanelPr
                 Query Cache: Active (Zero API cost for repeats)
               </Typography>
             </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Teacher-Student Distillation Hub Card */}
+      {distillStats && (
+        <Card
+          variant="outlined"
+          sx={{
+            mb: 4,
+            bgcolor: '#22201D',
+            borderColor: '#4D443B',
+            color: '#FAF7F2',
+          }}
+        >
+          <CardContent sx={{ p: 2.5 }}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <SchoolOutlinedIcon sx={{ color: 'secondary.light', fontSize: 22 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, letterSpacing: '0.04em', color: 'secondary.light' }}>
+                  TEACHER-STUDENT DISTILLATION HUB (LOCAL SLM TRAINING)
+                </Typography>
+                <Chip
+                  label={distillStats.ready_for_slm_fine_tuning ? 'Ready for Local LoRA Fine-Tuning' : 'Accumulating Pairs'}
+                  size="small"
+                  color={distillStats.ready_for_slm_fine_tuning ? 'success' : 'default'}
+                  sx={{ fontSize: '0.72rem' }}
+                />
+              </Stack>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                startIcon={<DownloadOutlinedIcon />}
+                href={analystService.exportDistillationUrl}
+                target="_blank"
+                download="teacher_distillation_dataset.jsonl"
+                disabled={distillStats.distillation_dataset_lines === 0}
+                sx={{ borderColor: '#BA68C8', fontWeight: 600 }}
+              >
+                Export Dataset ({distillStats.distillation_dataset_lines} pairs)
+              </Button>
+            </Stack>
+
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1A1816', borderColor: '#38332E', color: '#FAF7F2' }}>
+                  <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Total Code Skills</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{distillStats.verified_executable_solutions}</Typography>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1A1816', borderColor: '#38332E', color: '#FAF7F2' }}>
+                  <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Gemini Teacher Learned</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#BA68C8' }}>{distillStats.learned_from_gemini_teacher}</Typography>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1A1816', borderColor: '#38332E', color: '#FAF7F2' }}>
+                  <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Predefined Functions</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#81C784' }}>{distillStats.predefined_solutions}</Typography>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1A1816', borderColor: '#38332E', color: '#FAF7F2' }}>
+                  <Typography variant="caption" sx={{ color: '#BEB6AD' }}>Distillation JSONL Size</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>{Math.round(distillStats.distillation_file_bytes / 1024)} KB</Typography>
+                </Paper>
+              </Grid>
+            </Grid>
           </CardContent>
         </Card>
       )}

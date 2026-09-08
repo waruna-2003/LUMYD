@@ -38,6 +38,23 @@ class QueryResponse(BaseModel):
     routing_info: Optional[RoutingInfo] = None
     narrative: Optional[NarrativeResponse] = None
     task_result: Optional[dict[str, Any]] = None
+    # Code-Gen & Teacher-Student Distillation fields
+    generated_code: Optional[str] = None
+    code_source: Optional[str] = None  # "predefined", "knowledge_bank", "gemini_teacher"
+    code_result: Optional[dict[str, Any]] = None
+    human_explanation: Optional[str] = None
+    execution_time_ms: Optional[float] = None
+
+
+class DistillationStatsResponse(BaseModel):
+    total_knowledge_records: int
+    verified_executable_solutions: int
+    learned_from_gemini_teacher: int
+    predefined_solutions: int
+    distillation_dataset_lines: int
+    distillation_file_bytes: int
+    distillation_file_path: str
+    ready_for_slm_fine_tuning: bool
 
 
 class ResolveEscalationRequest(BaseModel):

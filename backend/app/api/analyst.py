@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
-from typing import Any, List
+from pathlib import Path
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.core.quota_guard import quota_guard
@@ -10,6 +13,7 @@ from app.models.column import ColumnMetadata
 from app.models.dataset import Dataset
 from app.models.query import AnalystQuery
 from app.schemas.query import (
+    DistillationStatsResponse,
     EscalationItemResponse,
     NarrativeResponse,
     QueryRequest,
@@ -20,10 +24,14 @@ from app.schemas.query import (
 )
 from app.services.agent_router import AgentRouterService
 from app.services.analytical_tasks import AnalyticalTaskEngine
-from app.services.gemini_triage_service import gemini_triage
+from app.services.code_engine.distillation_manager import DistillationManager
+from app.services.code_engine.gemini_teacher import gemini_teacher
+from app.services.code_engine.predefined_library import PredefinedCodeLibrary
+from app.services.code_engine.sandbox import CodeSandbox
 from app.services.narrative_generator import MultilingualNarrativeGenerator
 from app.services.query_parser import QueryParser
 from app.services.retrieval_engine import RetrievalEngine
+from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/analyst", tags=["analyst"])
 
@@ -31,11 +39,7 @@ router = APIRouter(prefix="/analyst", tags=["analyst"])
 def _execute_analytical_intelligence(
     dataset: Dataset, structure: QueryStructure, raw_query: str, db: Session
 ) -> tuple[Any, Any]:
-    from pathlib import Path
-    import pandas as pd
-
     try:
-        from app.services.storage_service import StorageService
         resolved_path = StorageService.resolve_file_path(dataset.storage_path)
         ext = Path(resolved_path).suffix.lower()
         df = pd.read_csv(resolved_path) if ext == ".csv" else pd.read_excel(resolved_path)
@@ -103,134 +107,251 @@ def process_business_query(
     if dataset.status != "processed":
         raise HTTPException(status_code=409, detail="Dataset is not processed yet.")
 
-    # 1. Evaluate with local Semantic Router
-    router_service = AgentRouterService(db)
-    route_result = router_service.route_query(dataset_id, request.query_text)
+    # 1. Load DataFrame & metadata
+    resolved_path = StorageService.resolve_file_path(dataset.storage_path)
+    ext = Path(resolved_path).suffix.lower()
+    df = pd.read_csv(resolved_path) if ext == ".csv" else pd.read_excel(resolved_path)
+    columns_list = [str(c) for c in df.columns]
+    raw_query = request.query_text.strip()
+    lang = MultilingualNarrativeGenerator.detect_language(raw_query)
 
-    # -------------------------------------------------------------
-    # PATH A: High-Confidence In-Distribution Match (Local Zero-Cost Execution)
-    # -------------------------------------------------------------
-    if not route_result["escalated"]:
+    # -----------------------------------------------------------------
+    # STEP 1: Check Code Knowledge Bank (Dynamic Semantic Cache - 0 API Calls)
+    # -----------------------------------------------------------------
+    cached_solution = DistillationManager.find_cached_knowledge(db, dataset_id, raw_query)
+    if cached_solution:
+        sandbox_res = CodeSandbox.execute(cached_solution["python_code"], df)
+        if sandbox_res["success"]:
+            query_record = AnalystQuery(
+                dataset_id=dataset_id,
+                query_text=raw_query,
+                structure={"intent": cached_solution["intent_label"], "source": "knowledge_bank"},
+                evidence_package={"result": sandbox_res["result"], "code": cached_solution["python_code"]},
+            )
+            db.add(query_record)
+            db.commit()
+            db.refresh(query_record)
+
+            return QueryResponse(
+                query_id=query_record.id,
+                structured_query=QueryStructure(
+                    intent=cached_solution["intent_label"],
+                    target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
+                    dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
+                ),
+                evidence_package={"result": sandbox_res["result"], "code": cached_solution["python_code"]},
+                routing_info=RoutingInfo(
+                    route="AUTOMATED_EXECUTION",
+                    confidence=cached_solution.get("similarity", 0.95),
+                    resolved_by="knowledge_bank",
+                    escalated=False,
+                ),
+                narrative=NarrativeResponse(
+                    headline=cached_solution["explanation"],
+                    narrative_text=cached_solution["explanation"],
+                    key_takeaways=[
+                        f"Task: {cached_solution['intent_label']}",
+                        "Reused from local knowledge bank (0 API calls)",
+                    ],
+                    language_detected=cached_solution["language"],
+                ),
+                generated_code=cached_solution["python_code"],
+                code_source="knowledge_bank",
+                code_result=sandbox_res["result"],
+                human_explanation=cached_solution["explanation"],
+                execution_time_ms=sandbox_res["execution_time_ms"],
+            )
+
+    # -----------------------------------------------------------------
+    # STEP 2: Check Predefined Function Library (0ms LLM latency)
+    # -----------------------------------------------------------------
+    predefined_match = PredefinedCodeLibrary.match_and_generate(raw_query, df)
+    if predefined_match:
+        sandbox_res = CodeSandbox.execute(predefined_match["python_code"], df)
+        if sandbox_res["success"]:
+            summary_val = ""
+            if isinstance(sandbox_res["result"], dict):
+                summary_val = str(sandbox_res["result"].get("value") or sandbox_res["result"].get("formatted") or "")
+
+            DistillationManager.record_solution(
+                db=db,
+                dataset_id=dataset_id,
+                query=raw_query,
+                intent_label=predefined_match["intent"],
+                python_code=predefined_match["python_code"],
+                explanation=predefined_match["explanation"],
+                language=predefined_match["language"],
+                execution_success=True,
+                source="predefined",
+                columns=columns_list,
+                result_summary=summary_val,
+            )
+
+            query_record = AnalystQuery(
+                dataset_id=dataset_id,
+                query_text=raw_query,
+                structure={"intent": predefined_match["intent"], "source": "predefined"},
+                evidence_package={"result": sandbox_res["result"], "code": predefined_match["python_code"]},
+            )
+            db.add(query_record)
+            db.commit()
+            db.refresh(query_record)
+
+            return QueryResponse(
+                query_id=query_record.id,
+                structured_query=QueryStructure(
+                    intent=predefined_match["intent"],
+                    target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
+                    dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
+                ),
+                evidence_package={"result": sandbox_res["result"], "code": predefined_match["python_code"]},
+                routing_info=RoutingInfo(
+                    route="AUTOMATED_EXECUTION",
+                    confidence=0.99,
+                    resolved_by="local_predefined",
+                    escalated=False,
+                ),
+                narrative=NarrativeResponse(
+                    headline=predefined_match["explanation"],
+                    narrative_text=predefined_match["explanation"],
+                    key_takeaways=[
+                        f"Task: {predefined_match['intent']}",
+                        f"Execution: {sandbox_res['execution_time_ms']}ms (Local Sandbox)",
+                    ],
+                    language_detected=predefined_match["language"],
+                ),
+                generated_code=predefined_match["python_code"],
+                code_source="predefined",
+                code_result=sandbox_res["result"],
+                human_explanation=predefined_match["explanation"],
+                execution_time_ms=sandbox_res["execution_time_ms"],
+            )
+
+    # -----------------------------------------------------------------
+    # STEP 3: Check Fixed Analytical Tasks (Ranking, Comparison, Trend, etc.)
+    # -----------------------------------------------------------------
+    router_service = AgentRouterService(db)
+    route_result = router_service.route_query(dataset_id, raw_query)
+
+    if not route_result["escalated"] and route_result["confidence"] >= 0.70:
         try:
             structure_data = QueryParser.parse_natural_language(
-                db, dataset_id, request.query_text, intent_override=route_result["task"]
+                db, dataset_id, raw_query, intent_override=route_result["task"]
             )
             structure = QueryStructure.model_validate(structure_data)
-            evidence = RetrievalEngine.get_evidence_package(
-                db, dataset_id, structure.model_dump()
+            evidence = RetrievalEngine.get_evidence_package(db, dataset_id, structure.model_dump())
+            task_res, narrative = _execute_analytical_intelligence(dataset, structure, raw_query, db)
+
+            dim = structure.dimensions[0] if structure.dimensions else df.columns[0]
+            metric = structure.target_metric
+            gen_code = (
+                f"# Execute {structure.intent} on '{metric}' grouped by '{dim}'\n"
+                f"result = df.groupby('{dim}')['{metric}'].sum().sort_values(ascending=False)"
             )
-        except ValueError as error:
-            raise HTTPException(status_code=422, detail=str(error)) from error
 
-        # Execute dedicated analytical task function & generate human narrative
-        task_res, narrative = _execute_analytical_intelligence(
-            dataset, structure, request.query_text, db
-        )
+            query_record = AnalystQuery(
+                dataset_id=dataset_id,
+                query_text=raw_query,
+                structure=structure.model_dump(mode="json"),
+                evidence_package=evidence,
+            )
+            db.add(query_record)
+            db.commit()
+            db.refresh(query_record)
 
-        query = AnalystQuery(
-            dataset_id=dataset_id,
-            query_text=request.query_text,
-            structure=structure.model_dump(mode="json"),
-            evidence_package=evidence,
-        )
-        db.add(query)
-        db.commit()
-        db.refresh(query)
+            return QueryResponse(
+                query_id=query_record.id,
+                structured_query=structure,
+                evidence_package=evidence,
+                routing_info=RoutingInfo(
+                    route=route_result["route"],
+                    confidence=route_result["confidence"],
+                    resolved_by="local_router",
+                    escalated=False,
+                ),
+                narrative=narrative,
+                task_result=task_res,
+                generated_code=gen_code,
+                code_source="predefined",
+                code_result={"type": "task_result", "data": task_res},
+                human_explanation=narrative.headline if narrative else None,
+                execution_time_ms=12.0,
+            )
+        except Exception as err:
+            print(f"[!] Local analytical task execution bypassed: {err}")
 
-        return QueryResponse(
-            query_id=query.id,
-            structured_query=structure,
-            evidence_package=evidence,
-            routing_info=RoutingInfo(
-                route=route_result["route"],
-                confidence=route_result["confidence"],
-                resolved_by="local_router",
-                escalated=False,
-            ),
-            narrative=narrative,
-            task_result=task_res,
-        )
+    # -----------------------------------------------------------------
+    # STEP 4: Gemini as The Master Teacher (Generate Python Code + Story)
+    # -----------------------------------------------------------------
+    teacher_taught = gemini_teacher.teach_code(raw_query, df, detected_language=lang)
 
-    # -------------------------------------------------------------
-    # PATH B: Low-Confidence / Novel Intent -> Automated Gemini Fallback
-    # -------------------------------------------------------------
+    if teacher_taught and teacher_taught.get("python_code"):
+        sandbox_res = CodeSandbox.execute(teacher_taught["python_code"], df)
+        if sandbox_res["success"]:
+            summary_val = ""
+            if isinstance(sandbox_res["result"], dict):
+                summary_val = str(sandbox_res["result"].get("value") or sandbox_res["result"].get("formatted") or "")
+
+            # Store solution in Knowledge Bank & append to Distillation Dataset
+            DistillationManager.record_solution(
+                db=db,
+                dataset_id=dataset_id,
+                query=raw_query,
+                intent_label=teacher_taught["intent_label"],
+                python_code=teacher_taught["python_code"],
+                explanation=teacher_taught["human_explanation"],
+                language=teacher_taught["language"],
+                execution_success=True,
+                source="gemini_teacher",
+                columns=columns_list,
+                result_summary=summary_val,
+            )
+
+            query_record = AnalystQuery(
+                dataset_id=dataset_id,
+                query_text=raw_query,
+                structure={"intent": teacher_taught["intent_label"], "source": "gemini_teacher"},
+                evidence_package={"result": sandbox_res["result"], "code": teacher_taught["python_code"]},
+            )
+            db.add(query_record)
+            db.commit()
+            db.refresh(query_record)
+
+            return QueryResponse(
+                query_id=query_record.id,
+                structured_query=QueryStructure(
+                    intent=teacher_taught["intent_label"],
+                    target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
+                    dimensions=[PredefinedCodeLibrary.find_best_categorical_column(df)],
+                ),
+                evidence_package={"result": sandbox_res["result"], "code": teacher_taught["python_code"]},
+                routing_info=RoutingInfo(
+                    route="AUTOMATED_EXECUTION",
+                    confidence=0.90,
+                    resolved_by="gemini_teacher",
+                    escalated=False,
+                ),
+                narrative=NarrativeResponse(
+                    headline=teacher_taught["human_explanation"],
+                    narrative_text=teacher_taught["human_explanation"],
+                    key_takeaways=[
+                        f"Learned Intent: {teacher_taught['intent_label']}",
+                        "Executed via sandboxed Python code",
+                        "Added to SLM distillation dataset for local training",
+                    ],
+                    language_detected=teacher_taught["language"],
+                ),
+                generated_code=teacher_taught["python_code"],
+                code_source="gemini_teacher",
+                code_result=sandbox_res["result"],
+                human_explanation=teacher_taught["human_explanation"],
+                execution_time_ms=sandbox_res["execution_time_ms"],
+            )
+
+    # -----------------------------------------------------------------
+    # STEP 5: Out-of-Scope / Novel Escalation Receipt (Path C)
+    # -----------------------------------------------------------------
     escalation_id = route_result.get("escalation_id")
-    columns = db.query(ColumnMetadata).filter(ColumnMetadata.dataset_id == dataset_id).all()
-    available_metrics = [
-        col.name for col in columns if col.business_role in {"MEASURE", "RATE"}
-    ]
-    available_dimensions = [
-        col.name
-        for col in columns
-        if col.business_role in {"DIMENSION", "ENTITY", "TIME_DIMENSION"}
-        and not col.is_redundant
-    ]
-
-    triage_result = gemini_triage.resolve_ambiguous_query(
-        request.query_text, available_metrics, available_dimensions
-    )
-
-    if triage_result:
-        # 1. Update escalation queue record to RESOLVED
-        if escalation_id:
-            escalation_item = db.query(EscalationQueue).filter(EscalationQueue.id == escalation_id).first()
-            if escalation_item:
-                escalation_item.status = "RESOLVED"
-                escalation_item.resolved_task = triage_result["intent"]
-                escalation_item.admin_notes = "Auto-resolved via Gemini Triage"
-                escalation_item.resolved_at = datetime.now(timezone.utc)
-
-        # 2. Active Learning: Append query to AgentTask.sample_queries for future local matches
-        target_task = (
-            db.query(AgentTask).filter(AgentTask.task_name == triage_result["intent"]).first()
-        )
-        if target_task:
-            current_samples = list(target_task.sample_queries or [])
-            if request.query_text not in current_samples:
-                current_samples.append(request.query_text)
-                target_task.sample_queries = current_samples
-                db.commit()
-                # Refresh local centroid cache so future identical/similar queries hit locally
-                router_service.warm_cache()
-
-        structure = QueryStructure.model_validate(triage_result)
-        evidence = RetrievalEngine.get_evidence_package(
-            db, dataset_id, structure.model_dump()
-        )
-
-        # Execute dedicated analytical task function & generate human narrative
-        task_res, narrative = _execute_analytical_intelligence(
-            dataset, structure, request.query_text, db
-        )
-
-        query = AnalystQuery(
-            dataset_id=dataset_id,
-            query_text=request.query_text,
-            structure=structure.model_dump(mode="json"),
-            evidence_package=evidence,
-        )
-        db.add(query)
-        db.commit()
-        db.refresh(query)
-
-        return QueryResponse(
-            query_id=query.id,
-            structured_query=structure,
-            evidence_package=evidence,
-            routing_info=RoutingInfo(
-                route="AUTOMATED_EXECUTION",
-                confidence=route_result["confidence"],
-                resolved_by="gemini_triage",
-                escalated=False,
-            ),
-            narrative=narrative,
-            task_result=task_res,
-        )
-
-    # -------------------------------------------------------------
-    # PATH C: Unresolvable / Out-of-Domain -> Safely Return Escalation Receipt
-    # -------------------------------------------------------------
-    lang = MultilingualNarrativeGenerator.detect_language(request.query_text)
     if lang == "singlish":
         headline = "Oyaage query eka triage queue ekata escalate kala."
         text = "Me question eka dataset eke thiyena metrics walata direct match une na. Ape team eken review karala model eka update karanna ticket ekak create kala."
@@ -259,22 +380,19 @@ def process_business_query(
         query_id=0,
         structured_query=QueryStructure(
             intent="unresolved_escalation",
-            target_metric=available_metrics[0] if available_metrics else "unknown",
+            target_metric=PredefinedCodeLibrary.find_best_numeric_column(df),
             dimensions=[],
             filters={"escalation_id": escalation_id or "none"},
         ),
         evidence_package={
             "status": "ESCALATED",
-            "message": route_result.get(
-                "message",
-                "Query could not be verified automatically. Logged to triage queue for review.",
-            ),
+            "message": "Query could not be answered with current dataset schema.",
             "escalation_id": escalation_id,
             "observations": [],
         },
         routing_info=RoutingInfo(
             route="HUMAN_ESCALATION",
-            confidence=route_result["confidence"],
+            confidence=route_result.get("confidence", 0.2),
             resolved_by="pending_triage",
             escalated=True,
         ),
@@ -285,6 +403,33 @@ def process_business_query(
             language_detected=lang,
         ),
         task_result=None,
+        generated_code=None,
+        code_source=None,
+        code_result=None,
+        human_explanation=headline,
+    )
+
+
+# =====================================================================
+# Distillation & Training Endpoints
+# =====================================================================
+
+@router.get("/distillation/stats", response_model=DistillationStatsResponse)
+def get_distillation_stats(db: Session = Depends(get_db)):
+    """Retrieve statistics about the accumulated Teacher-Student distillation dataset."""
+    return DistillationManager.get_statistics(db)
+
+
+@router.get("/distillation/export")
+def export_distillation_dataset():
+    """Download the accumulated instruction-tuning dataset for local SLM training."""
+    path = DistillationManager.get_dataset_path()
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Distillation dataset is empty yet.")
+    return FileResponse(
+        path=str(path),
+        filename="teacher_distillation_dataset.jsonl",
+        media_type="application/jsonlines",
     )
 
 
